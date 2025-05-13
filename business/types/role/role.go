@@ -8,40 +8,16 @@ import (
 
 // The set of roles that can be used.
 var (
-	User    = newRole("user")
-	Staff   = newRole("staff")
-	Support = newRole("support")
-	Manager = newRole("manager")
-	Admin   = newRole("admin")
+	User  = newRole("user")
+	Admin = newRole("admin")
 )
 
 var AllRoles = []Role{
 	User,
-	Staff,
-	Manager,
-	Support,
 	Admin,
 }
 
 var AdminRoles = AllRoles
-
-var SupportRoles = []Role{
-	User,
-	Staff,
-	Manager,
-	Support,
-}
-
-var ManagerRoles = []Role{
-	User,
-	Staff,
-	Manager,
-}
-
-var StaffRoles = []Role{
-	User,
-	Staff,
-}
 
 var UserRoles = []Role{
 	User,
@@ -141,49 +117,4 @@ func ParseMany(roles []string) ([]Role, error) {
 // HasRole checks if a user has a specific role
 func HasRole(usrRoles []Role, desiredRole Role) bool {
 	return slices.Contains(usrRoles, desiredRole)
-}
-
-// Set returns the set of roles for a given role
-// this is defined to give an admin all the roles in the system, for example, as we do not have a hierarchical role structure
-// in the authorization engine
-func Set(roles []Role) []Role {
-	if slices.Contains(roles, Admin) {
-		return AdminRoles
-	}
-
-	if slices.Contains(roles, Support) {
-		return SupportRoles
-	}
-
-	if slices.Contains(roles, Manager) {
-		return ManagerRoles
-	}
-
-	if slices.Contains(roles, Staff) {
-		return StaffRoles
-	}
-
-	return roles
-}
-
-// MaxRole returns the highest role in the list of roles for a given user. This is used for display purposes
-func MaxRole(roles []Role) Role {
-
-	if HasRole(roles, Admin) {
-		return Admin
-	}
-
-	if HasRole(roles, Support) {
-		return Support
-	}
-
-	if HasRole(roles, Manager) {
-		return Manager
-	}
-
-	if HasRole(roles, Staff) {
-		return Staff
-	}
-
-	return User
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/rmsj/service/app/sdk/apitest"
 	"github.com/rmsj/service/app/sdk/errs"
 )
@@ -52,18 +53,6 @@ func delete401(sd apitest.SeedData) []apitest.Table {
 			StatusCode: http.StatusUnauthorized,
 			GotResp:    &errs.Error{},
 			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
-			CmpFunc: func(got any, exp any) string {
-				return cmp.Diff(got, exp)
-			},
-		},
-		{
-			Name:       "wronguser",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Admins[0].Products[1].ID),
-			Token:      sd.Users[0].Token,
-			Method:     http.MethodDelete,
-			StatusCode: http.StatusUnauthorized,
-			GotResp:    &errs.Error{},
-			ExpResp:    errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action, claims[[user]] rule[rule_admin_or_subject]: rego evaluation failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},

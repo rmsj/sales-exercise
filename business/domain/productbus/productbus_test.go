@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/sdk/dbtest"
@@ -15,7 +16,6 @@ import (
 	"github.com/rmsj/service/business/sdk/unitest"
 	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/business/types/name"
-	"github.com/rmsj/service/business/types/quantity"
 	"github.com/rmsj/service/business/types/role"
 )
 
@@ -47,7 +47,7 @@ func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
 		return unitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
 	}
 
-	prds, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product, usrs[0].ID)
+	prds, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return unitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
 	}
@@ -64,7 +64,7 @@ func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
 		return unitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
 	}
 
-	prds, err = productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product, usrs[0].ID)
+	prds, err = productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return unitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
 	}
@@ -172,17 +172,13 @@ func create(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 		{
 			Name: "basic",
 			ExpResp: productbus.Product{
-				UserID:   sd.Users[0].ID,
-				Name:     name.MustParse("Guitar"),
-				Cost:     money.MustParse(10.34),
-				Quantity: quantity.MustParse(10),
+				Name:  name.MustParse("Guitar"),
+				Price: money.MustParse(10.34),
 			},
 			ExcFunc: func(ctx context.Context) any {
 				np := productbus.NewProduct{
-					UserID:   sd.Users[0].ID,
-					Name:     name.MustParse("Guitar"),
-					Cost:     money.MustParse(10.34),
-					Quantity: quantity.MustParse(10),
+					Name:  name.MustParse("Guitar"),
+					Price: money.MustParse(10.34),
 				}
 
 				resp, err := busDomain.Product.Create(ctx, np)
@@ -218,18 +214,15 @@ func update(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 			Name: "basic",
 			ExpResp: productbus.Product{
 				ID:          sd.Users[0].Products[0].ID,
-				UserID:      sd.Users[0].ID,
 				Name:        name.MustParse("Guitar"),
-				Cost:        money.MustParse(10.34),
-				Quantity:    quantity.MustParse(10),
+				Price:       money.MustParse(10.34),
 				DateCreated: sd.Users[0].Products[0].DateCreated,
 				DateUpdated: sd.Users[0].Products[0].DateCreated,
 			},
 			ExcFunc: func(ctx context.Context) any {
 				up := productbus.UpdateProduct{
-					Name:     dbtest.NamePointer("Guitar"),
-					Cost:     dbtest.MoneyPointer(10.34),
-					Quantity: dbtest.QuantityPointer(10),
+					Name:  dbtest.NamePointer("Guitar"),
+					Price: dbtest.MoneyPointer(10.34),
 				}
 
 				resp, err := busDomain.Product.Update(ctx, sd.Users[0].Products[0], up)

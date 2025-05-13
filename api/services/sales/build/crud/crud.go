@@ -4,7 +4,6 @@ package crud
 import (
 	"github.com/rmsj/service/app/domain/checkapp"
 	"github.com/rmsj/service/app/domain/productapp"
-	"github.com/rmsj/service/app/domain/tranapp"
 	"github.com/rmsj/service/app/domain/userapp"
 	"github.com/rmsj/service/app/sdk/mux"
 	"github.com/rmsj/service/foundation/web"
@@ -30,14 +29,6 @@ func (add) Add(app *web.App, cfg mux.Config) {
 		UserBus:    cfg.BusConfig.UserBus,
 		ProductBus: cfg.BusConfig.ProductBus,
 		AuthClient: cfg.SalesConfig.AuthClient,
-	})
-
-	tranapp.Routes(app, tranapp.Config{
-		UserBus:    cfg.BusConfig.UserBus,
-		ProductBus: cfg.BusConfig.ProductBus,
-		Log:        cfg.Log,
-		AuthClient: cfg.SalesConfig.AuthClient,
-		DB:         cfg.DB,
 	})
 
 	userapp.Routes(app, userapp.Config{

@@ -50,10 +50,9 @@ func New(t *testing.T, testName string) *Test {
 		Log: db.Log,
 		DB:  db.DB,
 		BusConfig: mux.BusConfig{
-			AuthBus:     db.BusDomain.Auth,
-			UserBus:     db.BusDomain.User,
-			ProductBus:  db.BusDomain.Product,
-			VProductBus: db.BusDomain.VProduct,
+			AuthBus:    db.BusDomain.Auth,
+			UserBus:    db.BusDomain.User,
+			ProductBus: db.BusDomain.Product,
 		},
 		SalesConfig: mux.SalesConfig{
 			AuthClient: authClient,

@@ -5,32 +5,31 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+
 	"github.com/rmsj/service/app/sdk/errs"
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/types/name"
 )
 
 type queryParams struct {
-	Page     string
-	Rows     string
-	OrderBy  string
-	ID       string
-	Name     string
-	Cost     string
-	Quantity string
+	Page    string
+	Rows    string
+	OrderBy string
+	ID      string
+	Name    string
+	Price   string
 }
 
 func parseQueryParams(r *http.Request) queryParams {
 	values := r.URL.Query()
 
 	filter := queryParams{
-		Page:     values.Get("page"),
-		Rows:     values.Get("rows"),
-		OrderBy:  values.Get("orderBy"),
-		ID:       values.Get("product_id"),
-		Name:     values.Get("name"),
-		Cost:     values.Get("cost"),
-		Quantity: values.Get("quantity"),
+		Page:    values.Get("page"),
+		Rows:    values.Get("rows"),
+		OrderBy: values.Get("orderBy"),
+		ID:      values.Get("product_id"),
+		Name:    values.Get("name"),
+		Price:   values.Get("price"),
 	}
 
 	return filter
@@ -60,24 +59,13 @@ func parseFilter(qp queryParams) (productbus.QueryFilter, error) {
 		}
 	}
 
-	if qp.Cost != "" {
-		cst, err := strconv.ParseFloat(qp.Cost, 64)
+	if qp.Price != "" {
+		cst, err := strconv.ParseFloat(qp.Price, 64)
 		switch err {
 		case nil:
-			filter.Cost = &cst
+			filter.Price = &cst
 		default:
-			fieldErrors.Add("cost", err)
-		}
-	}
-
-	if qp.Quantity != "" {
-		qua, err := strconv.ParseInt(qp.Quantity, 10, 64)
-		switch err {
-		case nil:
-			i := int(qua)
-			filter.Quantity = &i
-		default:
-			fieldErrors.Add("quantity", err)
+			fieldErrors.Add("price", err)
 		}
 	}
 

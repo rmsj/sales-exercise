@@ -15,8 +15,6 @@ type User struct {
 	ID           uuid.UUID
 	Name         name.Name
 	Email        mail.Address
-	Mobile       string
-	ProfileImage string
 	Roles        []role.Role
 	PasswordHash []byte
 	Department   name.Null
@@ -28,21 +26,17 @@ type User struct {
 
 // NewUser contains information needed to create a new user.
 type NewUser struct {
-	Name         name.Name
-	Email        mail.Address
-	Mobile       *string
-	ProfileImage *string
-	Roles        []role.Role
-	Department   name.Null
-	Password     string
+	Name       name.Name
+	Email      mail.Address
+	Roles      []role.Role
+	Department name.Null
+	Password   string
 }
 
 // UpdateUser contains information needed to update a user.
 type UpdateUser struct {
 	Name            *name.Name
 	Email           *mail.Address
-	Mobile          *string
-	ProfileImage    *string
 	Roles           []role.Role
 	Department      *name.Null
 	RefreshToken    *string

@@ -4,10 +4,7 @@ package all
 import (
 	"github.com/rmsj/service/app/domain/checkapp"
 	"github.com/rmsj/service/app/domain/productapp"
-	"github.com/rmsj/service/app/domain/rawapp"
-	"github.com/rmsj/service/app/domain/tranapp"
 	"github.com/rmsj/service/app/domain/userapp"
-	"github.com/rmsj/service/app/domain/vproductapp"
 	"github.com/rmsj/service/app/sdk/mux"
 	"github.com/rmsj/service/foundation/web"
 )
@@ -35,26 +32,9 @@ func (add) Add(app *web.App, cfg mux.Config) {
 		AuthClient: cfg.SalesConfig.AuthClient,
 	})
 
-	rawapp.Routes(app)
-
-	tranapp.Routes(app, tranapp.Config{
-		Log:        cfg.Log,
-		DB:         cfg.DB,
-		UserBus:    cfg.BusConfig.UserBus,
-		ProductBus: cfg.BusConfig.ProductBus,
-		AuthClient: cfg.SalesConfig.AuthClient,
-	})
-
 	userapp.Routes(app, userapp.Config{
 		Log:        cfg.Log,
 		UserBus:    cfg.BusConfig.UserBus,
 		AuthClient: cfg.SalesConfig.AuthClient,
-	})
-
-	vproductapp.Routes(app, vproductapp.Config{
-		Log:         cfg.Log,
-		UserBus:     cfg.BusConfig.UserBus,
-		VProductBus: cfg.BusConfig.VProductBus,
-		AuthClient:  cfg.SalesConfig.AuthClient,
 	})
 }

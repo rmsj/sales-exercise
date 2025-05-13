@@ -52,9 +52,9 @@ func (s *Store) NewWithTx(tx sqldb.CommitRollbacker) (productbus.Storer, error) 
 func (s *Store) Create(ctx context.Context, prd productbus.Product) error {
 	const q = `
 	INSERT INTO products
-		(product_id, user_id, name, cost, quantity, created_at, updated_at)
+		(id, name, price, created_at, updated_at)
 	VALUES
-		(:product_id, :user_id, :name, :cost, :quantity, :created_at, :updated_at)`
+		(:id, :name, :price, :created_at, :updated_at)`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDBProduct(prd)); err != nil {
 		return fmt.Errorf("namedexeccontext: %w", err)
@@ -71,11 +71,10 @@ func (s *Store) Update(ctx context.Context, prd productbus.Product) error {
 		products
 	SET
 		name = :name,
-		cost = :cost,
-		quantity = :quantity,
+		price = :price,
 		updated_at = :updated_at
 	WHERE
-		product_id = :product_id`
+		id = :id`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDBProduct(prd)); err != nil {
 		return fmt.Errorf("namedexeccontext: %w", err)
@@ -87,7 +86,7 @@ func (s *Store) Update(ctx context.Context, prd productbus.Product) error {
 // Delete removes the product identified by a given ID.
 func (s *Store) Delete(ctx context.Context, prd productbus.Product) error {
 	data := struct {
-		ID string `db:"product_id"`
+		ID string `db:"id"`
 	}{
 		ID: prd.ID.String(),
 	}
@@ -96,7 +95,7 @@ func (s *Store) Delete(ctx context.Context, prd productbus.Product) error {
 	DELETE FROM
 		products
 	WHERE
-		product_id = :product_id`
+		id = :id`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, data); err != nil {
 		return fmt.Errorf("namedexeccontext: %w", err)
@@ -114,7 +113,7 @@ func (s *Store) Query(ctx context.Context, filter productbus.QueryFilter, orderB
 
 	const q = `
 	SELECT
-	    product_id, user_id, name, cost, quantity, created_at, updated_at
+	    id, name, price, created_at, updated_at
 	FROM
 		products`
 
@@ -137,11 +136,11 @@ func (s *Store) Query(ctx context.Context, filter productbus.QueryFilter, orderB
 	return toBusProducts(dbPrds)
 }
 
-// Count returns the total number of users in the DB.
+// Count returns the total number of products in the DB.
 func (s *Store) Count(ctx context.Context, filter productbus.QueryFilter) (int, error) {
 	data := map[string]any{}
 
-	const q = "SELECT COUNT(product_id) AS `count` FROM products"
+	const q = "SELECT COUNT(id) AS `count` FROM products"
 
 	buf := bytes.NewBufferString(q)
 	s.applyFilter(filter, data, buf)
@@ -161,18 +160,18 @@ func (s *Store) Count(ctx context.Context, filter productbus.QueryFilter) (int, 
 // QueryByID finds the product identified by a given ID.
 func (s *Store) QueryByID(ctx context.Context, productID uuid.UUID) (productbus.Product, error) {
 	data := struct {
-		ID string `db:"product_id"`
+		ID string `db:"id"`
 	}{
 		ID: productID.String(),
 	}
 
 	const q = `
 	SELECT
-	    product_id, user_id, name, cost, quantity, created_at, updated_at
+	    id, name, price, created_at, updated_at
 	FROM
 		products
 	WHERE
-		product_id = :product_id`
+		id = :id`
 
 	var dbPrd product
 	if err := sqldb.NamedQueryStruct(ctx, s.log, s.db, q, data, &dbPrd); err != nil {
@@ -183,28 +182,4 @@ func (s *Store) QueryByID(ctx context.Context, productID uuid.UUID) (productbus.
 	}
 
 	return toBusProduct(dbPrd)
-}
-
-// QueryByUserID finds the product identified by a given User ID.
-func (s *Store) QueryByUserID(ctx context.Context, userID uuid.UUID) ([]productbus.Product, error) {
-	data := struct {
-		ID string `db:"user_id"`
-	}{
-		ID: userID.String(),
-	}
-
-	const q = `
-	SELECT
-	    product_id, user_id, name, cost, quantity, created_at, updated_at
-	FROM
-		products
-	WHERE
-		user_id = :user_id`
-
-	var dbPrds []product
-	if err := sqldb.NamedQuerySlice(ctx, s.log, s.db, q, data, &dbPrds); err != nil {
-		return nil, fmt.Errorf("db: %w", err)
-	}
-
-	return toBusProducts(dbPrds)
 }

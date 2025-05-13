@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/rmsj/service/app/sdk/auth"
-	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/sdk/sqldb"
 	"github.com/rmsj/service/foundation/web"
@@ -33,7 +32,6 @@ const (
 	claimKey ctxKey = iota + 1
 	userIDKey
 	userKey
-	productKey
 	trKey
 	timeKey ctxStringKey = "time"
 )
@@ -86,20 +84,6 @@ func GetUser(ctx context.Context) (userbus.User, error) {
 	v, ok := ctx.Value(userKey).(userbus.User)
 	if !ok {
 		return userbus.User{}, errors.New("user not found in context")
-	}
-
-	return v, nil
-}
-
-func setProduct(ctx context.Context, prd productbus.Product) context.Context {
-	return context.WithValue(ctx, productKey, prd)
-}
-
-// GetProduct returns the product from the context.
-func GetProduct(ctx context.Context) (productbus.Product, error) {
-	v, ok := ctx.Value(productKey).(productbus.Product)
-	if !ok {
-		return productbus.Product{}, errors.New("product not found in context")
 	}
 
 	return v, nil

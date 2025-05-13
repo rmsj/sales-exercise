@@ -68,11 +68,7 @@ SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 # ==============================================================================
 # Running The Project
 #
-#	$ make dev-up
-#	$ make dev-update-apply
-#	$ make token
-#	$ export TOKEN=<token>
-#	$ make users
+#	$ make compose-build-up
 #
 #	You can use `make dev-status` to look at the status of your KIND cluster.
 

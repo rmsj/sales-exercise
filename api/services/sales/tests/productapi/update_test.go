@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/rmsj/service/app/domain/productapp"
 	"github.com/rmsj/service/app/sdk/apitest"
 	"github.com/rmsj/service/app/sdk/errs"
@@ -21,17 +22,14 @@ func update200(sd apitest.SeedData) []apitest.Table {
 			Method:     http.MethodPut,
 			StatusCode: http.StatusOK,
 			Input: &productapp.UpdateProduct{
-				Name:     dbtest.StringPointer("Guitar"),
-				Cost:     dbtest.FloatPointer(10.34),
-				Quantity: dbtest.IntPointer(10),
+				Name:  dbtest.StringPointer("Guitar"),
+				Price: dbtest.FloatPointer(10.34),
 			},
 			GotResp: &productapp.Product{},
 			ExpResp: &productapp.Product{
 				ID:          sd.Users[0].Products[0].ID.String(),
-				UserID:      sd.Users[0].ID.String(),
 				Name:        "Guitar",
-				Cost:        10.34,
-				Quantity:    10,
+				Price:       10.34,
 				DateCreated: sd.Users[0].Products[0].DateCreated.Format(time.RFC3339),
 				DateUpdated: sd.Users[0].Products[0].DateCreated.Format(time.RFC3339),
 			},
@@ -61,11 +59,10 @@ func update400(sd apitest.SeedData) []apitest.Table {
 			Method:     http.MethodPut,
 			StatusCode: http.StatusBadRequest,
 			Input: &productapp.UpdateProduct{
-				Cost:     dbtest.FloatPointer(-1.0),
-				Quantity: dbtest.IntPointer(0),
+				Price: dbtest.FloatPointer(-1.0),
 			},
 			GotResp: &errs.Error{},
-			ExpResp: errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"cost\",\"error\":\"cost must be 0 or greater\"},{\"field\":\"quantity\",\"error\":\"quantity must be 1 or greater\"}]"),
+			ExpResp: errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"price\",\"error\":\"price must be 0 or greater\"}]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},
@@ -97,23 +94,6 @@ func update401(sd apitest.SeedData) []apitest.Table {
 			StatusCode: http.StatusUnauthorized,
 			GotResp:    &errs.Error{},
 			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
-			CmpFunc: func(got any, exp any) string {
-				return cmp.Diff(got, exp)
-			},
-		},
-		{
-			Name:       "wronguser",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Admins[0].Products[0].ID),
-			Token:      sd.Users[0].Token,
-			Method:     http.MethodPut,
-			StatusCode: http.StatusUnauthorized,
-			Input: &productapp.UpdateProduct{
-				Name:     dbtest.StringPointer("Guitar"),
-				Cost:     dbtest.FloatPointer(10.34),
-				Quantity: dbtest.IntPointer(10),
-			},
-			GotResp: &errs.Error{},
-			ExpResp: errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action, claims[[user]] rule[rule_admin_or_subject]: rego evaluation failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},

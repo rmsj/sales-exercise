@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/rmsj/service/app/domain/productapp"
 	"github.com/rmsj/service/app/sdk/apitest"
 	"github.com/rmsj/service/app/sdk/errs"
@@ -18,16 +19,13 @@ func create200(sd apitest.SeedData) []apitest.Table {
 			Method:     http.MethodPost,
 			StatusCode: http.StatusOK,
 			Input: &productapp.NewProduct{
-				Name:     "Guitar",
-				Cost:     10.34,
-				Quantity: 10,
+				Name:  "Guitar",
+				Price: 10.34,
 			},
 			GotResp: &productapp.Product{},
 			ExpResp: &productapp.Product{
-				Name:     "Guitar",
-				UserID:   sd.Users[0].ID.String(),
-				Cost:     10.34,
-				Quantity: 10,
+				Name:  "Guitar",
+				Price: 10.34,
 			},
 			CmpFunc: func(got any, exp any) string {
 				gotResp, exists := got.(*productapp.Product)
@@ -59,7 +57,7 @@ func create400(sd apitest.SeedData) []apitest.Table {
 			StatusCode: http.StatusBadRequest,
 			Input:      &productapp.NewProduct{},
 			GotResp:    &errs.Error{},
-			ExpResp:    errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"name\",\"error\":\"name is a required field\"},{\"field\":\"cost\",\"error\":\"cost is a required field\"},{\"field\":\"quantity\",\"error\":\"quantity is a required field\"}]"),
+			ExpResp:    errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"name\",\"error\":\"name is a required field\"},{\"field\":\"price\",\"error\":\"price is a required field\"}]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},

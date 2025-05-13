@@ -1,26 +1,21 @@
 package productapp
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/rmsj/service/app/sdk/errs"
-	"github.com/rmsj/service/app/sdk/mid"
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/business/types/name"
-	"github.com/rmsj/service/business/types/quantity"
 )
 
 // Product represents information about an individual product.
 type Product struct {
 	ID          string  `json:"id"`
-	UserID      string  `json:"userID"`
 	Name        string  `json:"name"`
-	Cost        float64 `json:"cost"`
-	Quantity    int     `json:"quantity"`
+	Price       float64 `json:"price"`
 	DateCreated string  `json:"dateCreated"`
 	DateUpdated string  `json:"dateUpdated"`
 }
@@ -34,10 +29,8 @@ func (app Product) Encode() ([]byte, string, error) {
 func toAppProduct(prd productbus.Product) Product {
 	return Product{
 		ID:          prd.ID.String(),
-		UserID:      prd.UserID.String(),
 		Name:        prd.Name.String(),
-		Cost:        prd.Cost.Value(),
-		Quantity:    prd.Quantity.Value(),
+		Price:       prd.Price.Value(),
 		DateCreated: prd.DateCreated.Format(time.RFC3339),
 		DateUpdated: prd.DateUpdated.Format(time.RFC3339),
 	}
@@ -56,9 +49,8 @@ func toAppProducts(prds []productbus.Product) []Product {
 
 // NewProduct defines the data needed to add a new product.
 type NewProduct struct {
-	Name     string  `json:"name" validate:"required"`
-	Cost     float64 `json:"cost" validate:"required,gte=0"`
-	Quantity int     `json:"quantity" validate:"required,gte=1"`
+	Name  string  `json:"name" validate:"required"`
+	Price float64 `json:"price" validate:"required,gte=0"`
 }
 
 // Decode implements the decoder interface.
@@ -75,32 +67,21 @@ func (app NewProduct) Validate() error {
 	return nil
 }
 
-func toBusNewProduct(ctx context.Context, app NewProduct) (productbus.NewProduct, error) {
-	userID, err := mid.GetUserID(ctx)
-	if err != nil {
-		return productbus.NewProduct{}, fmt.Errorf("getuserid: %w", err)
-	}
+func toBusNewProduct(app NewProduct) (productbus.NewProduct, error) {
 
 	name, err := name.Parse(app.Name)
 	if err != nil {
 		return productbus.NewProduct{}, fmt.Errorf("parse name: %w", err)
 	}
 
-	cost, err := money.Parse(app.Cost)
+	price, err := money.Parse(app.Price)
 	if err != nil {
-		return productbus.NewProduct{}, fmt.Errorf("parse cost: %w", err)
-	}
-
-	quantity, err := quantity.Parse(app.Quantity)
-	if err != nil {
-		return productbus.NewProduct{}, fmt.Errorf("parse quantity: %w", err)
+		return productbus.NewProduct{}, fmt.Errorf("parse price: %w", err)
 	}
 
 	bus := productbus.NewProduct{
-		UserID:   userID,
-		Name:     name,
-		Cost:     cost,
-		Quantity: quantity,
+		Name:  name,
+		Price: price,
 	}
 
 	return bus, nil
@@ -110,9 +91,8 @@ func toBusNewProduct(ctx context.Context, app NewProduct) (productbus.NewProduct
 
 // UpdateProduct defines the data needed to update a product.
 type UpdateProduct struct {
-	Name     *string  `json:"name"`
-	Cost     *float64 `json:"cost" validate:"omitempty,gte=0"`
-	Quantity *int     `json:"quantity" validate:"omitempty,gte=1"`
+	Name  *string  `json:"name"`
+	Price *float64 `json:"price" validate:"omitempty,gte=0"`
 }
 
 // Decode implements the decoder interface.
@@ -139,28 +119,18 @@ func toBusUpdateProduct(app UpdateProduct) (productbus.UpdateProduct, error) {
 		nme = &nm
 	}
 
-	var cost *money.Money
-	if app.Cost != nil {
-		cst, err := money.Parse(*app.Cost)
+	var price *money.Money
+	if app.Price != nil {
+		prc, err := money.Parse(*app.Price)
 		if err != nil {
 			return productbus.UpdateProduct{}, fmt.Errorf("parse: %w", err)
 		}
-		cost = &cst
-	}
-
-	var qnt *quantity.Quantity
-	if app.Cost != nil {
-		qn, err := quantity.Parse(*app.Quantity)
-		if err != nil {
-			return productbus.UpdateProduct{}, fmt.Errorf("parse: %w", err)
-		}
-		qnt = &qn
+		price = &prc
 	}
 
 	bus := productbus.UpdateProduct{
-		Name:     nme,
-		Cost:     cost,
-		Quantity: qnt,
+		Name:  nme,
+		Price: price,
 	}
 
 	return bus, nil

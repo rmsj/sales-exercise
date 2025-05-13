@@ -47,10 +47,10 @@ func Parse(fieldMappings map[string]string, orderBy string, defaultOrder By) (By
 
 	orderParts := strings.Split(orderBy, ",")
 
-	orgFieldName := strings.TrimSpace(orderParts[0])
-	fieldName, exists := fieldMappings[orgFieldName]
+	orderFieldName := strings.TrimSpace(orderParts[0])
+	fieldName, exists := fieldMappings[orderFieldName]
 	if !exists {
-		return By{}, fmt.Errorf("unknown order: %s", orgFieldName)
+		return By{}, fmt.Errorf("unknown order: %s", orderFieldName)
 	}
 
 	switch len(orderParts) {

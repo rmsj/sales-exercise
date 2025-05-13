@@ -5,18 +5,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/business/types/name"
-	"github.com/rmsj/service/business/types/quantity"
 )
 
 type product struct {
-	ID          uuid.UUID `db:"product_id"`
-	UserID      uuid.UUID `db:"user_id"`
+	ID          uuid.UUID `db:"id"`
 	Name        string    `db:"name"`
-	Cost        float64   `db:"cost"`
-	Quantity    int       `db:"quantity"`
+	Price       float64   `db:"price"`
 	DateCreated time.Time `db:"created_at"`
 	DateUpdated time.Time `db:"updated_at"`
 }
@@ -24,10 +22,8 @@ type product struct {
 func toDBProduct(bus productbus.Product) product {
 	db := product{
 		ID:          bus.ID,
-		UserID:      bus.UserID,
 		Name:        bus.Name.String(),
-		Cost:        bus.Cost.Value(),
-		Quantity:    bus.Quantity.Value(),
+		Price:       bus.Price.Value(),
 		DateCreated: bus.DateCreated.UTC(),
 		DateUpdated: bus.DateUpdated.UTC(),
 	}
@@ -41,22 +37,15 @@ func toBusProduct(db product) (productbus.Product, error) {
 		return productbus.Product{}, fmt.Errorf("parse name: %w", err)
 	}
 
-	cost, err := money.Parse(db.Cost)
+	price, err := money.Parse(db.Price)
 	if err != nil {
 		return productbus.Product{}, fmt.Errorf("parse cost: %w", err)
 	}
 
-	quantity, err := quantity.Parse(db.Quantity)
-	if err != nil {
-		return productbus.Product{}, fmt.Errorf("parse quantity: %w", err)
-	}
-
 	bus := productbus.Product{
 		ID:          db.ID,
-		UserID:      db.UserID,
 		Name:        name,
-		Cost:        cost,
-		Quantity:    quantity,
+		Price:       price,
 		DateCreated: db.DateCreated.In(time.Local),
 		DateUpdated: db.DateUpdated.In(time.Local),
 	}

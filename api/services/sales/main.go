@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"expvar"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/rmsj/service/api/services/sales/build/all"
 	"github.com/rmsj/service/api/services/sales/build/crud"
-	"github.com/rmsj/service/api/services/sales/build/reporting"
 	"github.com/rmsj/service/app/sdk/authclient"
 	"github.com/rmsj/service/app/sdk/debug"
 	"github.com/rmsj/service/app/sdk/mux"
@@ -25,8 +23,6 @@ import (
 	"github.com/rmsj/service/business/domain/productbus/stores/productdb"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/domain/userbus/stores/userdb"
-	"github.com/rmsj/service/business/domain/vproductbus"
-	"github.com/rmsj/service/business/domain/vproductbus/stores/vproductdb"
 	"github.com/rmsj/service/business/sdk/delegate"
 	"github.com/rmsj/service/business/sdk/sqldb"
 	"github.com/rmsj/service/foundation/logger"
@@ -36,9 +32,6 @@ import (
 /*
 	Need to figure out timeouts for http service.
 */
-
-//go:embed static
-var static embed.FS
 
 var build = "develop"
 var routes = "all" // go build -ldflags "-X main.routes=crud"
@@ -169,8 +162,7 @@ func run(ctx context.Context, log *logger.Logger) error {
 
 	dlg := delegate.New(log)
 	userBus := userbus.NewBusiness(log, dlg, userStorage)
-	productBus := productbus.NewBusiness(log, userBus, dlg, productdb.NewStore(log, db))
-	vproductBus := vproductbus.NewBusiness(vproductdb.NewStore(log, db))
+	productBus := productbus.NewBusiness(log, dlg, productdb.NewStore(log, db))
 
 	// -------------------------------------------------------------------------
 	// Initialize authentication support
@@ -226,9 +218,8 @@ func run(ctx context.Context, log *logger.Logger) error {
 		DB:     db,
 		Tracer: tracer,
 		BusConfig: mux.BusConfig{
-			UserBus:     userBus,
-			ProductBus:  productBus,
-			VProductBus: vproductBus,
+			UserBus:    userBus,
+			ProductBus: productBus,
 		},
 		SalesConfig: mux.SalesConfig{
 			AuthClient: authClient,
@@ -238,7 +229,6 @@ func run(ctx context.Context, log *logger.Logger) error {
 	webAPI := mux.WebAPI(cfgMux,
 		buildRoutes(),
 		mux.WithCORS(cfg.Web.CORSAllowedOrigins),
-		mux.WithFileServer(false, static, "static", "/"),
 	)
 
 	api := http.Server{
@@ -297,9 +287,6 @@ func buildRoutes() mux.RouteAdder {
 	switch routes {
 	case "crud":
 		return crud.Routes()
-
-	case "reporting":
-		return reporting.Routes()
 	}
 
 	return all.Routes()

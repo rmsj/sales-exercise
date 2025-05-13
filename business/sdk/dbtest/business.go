@@ -11,8 +11,6 @@ import (
 	"github.com/rmsj/service/business/domain/productbus/stores/productdb"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/domain/userbus/stores/userdb"
-	"github.com/rmsj/service/business/domain/vproductbus"
-	"github.com/rmsj/service/business/domain/vproductbus/stores/vproductdb"
 	"github.com/rmsj/service/business/sdk/delegate"
 	"github.com/rmsj/service/foundation/logger"
 )
@@ -23,21 +21,18 @@ type BusDomain struct {
 	Auth     *authbus.Business
 	Product  *productbus.Business
 	User     *userbus.Business
-	VProduct *vproductbus.Business
 }
 
 func newBusDomains(log *logger.Logger, db *sqlx.DB) BusDomain {
 	dlg := delegate.New(log)
 	authBus := authbus.NewBusiness(log, authdb.NewStore(log, db))
 	userBus := userbus.NewBusiness(log, dlg, userdb.NewStore(log, db, time.Hour))
-	productBus := productbus.NewBusiness(log, userBus, dlg, productdb.NewStore(log, db))
-	vproductBus := vproductbus.NewBusiness(vproductdb.NewStore(log, db))
+	productBus := productbus.NewBusiness(log, dlg, productdb.NewStore(log, db))
 
 	return BusDomain{
 		Delegate: dlg,
 		Auth:     authBus,
 		Product:  productBus,
 		User:     userBus,
-		VProduct: vproductBus,
 	}
 }

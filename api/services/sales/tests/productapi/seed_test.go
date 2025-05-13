@@ -21,7 +21,7 @@ func insertSeedData(db *dbtest.Database, ath *auth.Auth) (apitest.SeedData, erro
 		return apitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
 	}
 
-	prds, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product, usrs[0].ID)
+	prds, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return apitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
 	}
@@ -40,7 +40,7 @@ func insertSeedData(db *dbtest.Database, ath *auth.Auth) (apitest.SeedData, erro
 		return apitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
 	}
 
-	prds, err = productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product, usrs[0].ID)
+	prds, err = productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return apitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
 	}

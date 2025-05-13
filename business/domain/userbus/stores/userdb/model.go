@@ -15,11 +15,9 @@ import (
 )
 
 type user struct {
-	ID           uuid.UUID      `db:"user_id"`
+	ID           uuid.UUID      `db:"id"`
 	Name         string         `db:"name"`
 	Email        string         `db:"email"`
-	Mobile       sql.NullString `db:"mobile"`
-	ProfileImage sql.NullString `db:"profile_image"`
 	Roles        string         `db:"roles"`
 	PasswordHash []byte         `db:"password_hash"`
 	Department   sql.NullString `db:"department"`

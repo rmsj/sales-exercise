@@ -2,12 +2,10 @@
 -- Description: Create table users
 CREATE TABLE users
 (
-    user_id       CHAR(36)     NOT NULL,
+    id            CHAR(36)     NOT NULL,
     name          VARCHAR(250) NOT NULL,
     email         VARCHAR(150) NOT NULL,
-    mobile        VARCHAR(150) NULL,
-    profile_image TEXT NULL,
-    roles SET ('user', 'staff', 'manager', 'support', 'admin') NOT NULL,
+    roles SET ('user', 'admin') NOT NULL,
     password_hash VARCHAR(150) NOT NULL,
     department    VARCHAR(200) NULL,
     enabled       BOOLEAN      NOT NULL,
@@ -15,7 +13,7 @@ CREATE TABLE users
     updated_at    TIMESTAMP(6) NOT NULL,
     created_at    TIMESTAMP(6) NOT NULL,
 
-    PRIMARY KEY (user_id)
+    PRIMARY KEY (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = latin1
   COLLATE = latin1_general_ci;
@@ -24,35 +22,54 @@ CREATE TABLE users
 -- Description: Create table products
 CREATE TABLE products
 (
-    product_id CHAR(36)       NOT NULL,
-    user_id    CHAR(36)       NOT NULL,
+    id         CHAR(36)       NOT NULL,
     name       VARCHAR(250)   NOT NULL,
-    cost       NUMERIC(10, 2) NOT NULL,
-    quantity   INT            NOT NULL,
+    price      NUMERIC(10, 2) NOT NULL,
     updated_at TIMESTAMP(6)   NOT NULL,
     created_at TIMESTAMP(6)   NOT NULL,
 
-    PRIMARY KEY (product_id),
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    PRIMARY KEY (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = latin1
   COLLATE = latin1_general_ci;
 
 -- Version: 1.03
--- Description: Add products view.
-CREATE OR REPLACE VIEW view_products AS
-SELECT p.product_id,
-       p.user_id,
-       p.name,
-       p.cost,
-       p.quantity,
-       p.created_at,
-       p.updated_at,
-       u.name AS user_name
-FROM products AS p
-         LEFT JOIN users AS u ON u.user_id = p.user_id
+-- Description: Create table products
+CREATE TABLE sales
+(
+    id         CHAR(36)     NOT NULL,
+    user_id    CHAR(36)     NOT NULL,
+    discount   NUMERIC(10, 2) NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = latin1
+  COLLATE = latin1_general_ci;
 
 -- Version: 1.04
+-- Description: Create table products
+CREATE TABLE sale_items
+(
+    id         CHAR(36)       NOT NULL,
+    sale_id    CHAR(36)       NOT NULL,
+    product_id CHAR(36)       NOT NULL,
+    quantity   INT(3)   NOT NULL,
+    discount   NUMERIC(10, 2) NULL,
+    price      NUMERIC(10, 2) NOT NULL,
+    updated_at TIMESTAMP(6)   NOT NULL,
+    created_at TIMESTAMP(6)   NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = latin1
+  COLLATE = latin1_general_ci;
+
+-- Version: 1.05
 -- Description: Add password reset table
 CREATE TABLE password_reset_tokens
 (

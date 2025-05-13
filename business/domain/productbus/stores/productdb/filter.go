@@ -12,8 +12,8 @@ func (s *Store) applyFilter(filter productbus.QueryFilter, data map[string]any, 
 	var wc []string
 
 	if filter.ID != nil {
-		data["product_id"] = filter.ID
-		wc = append(wc, "product_id = :product_id")
+		data["id"] = filter.ID
+		wc = append(wc, "id = :id")
 	}
 
 	if filter.Name != nil {
@@ -21,14 +21,9 @@ func (s *Store) applyFilter(filter productbus.QueryFilter, data map[string]any, 
 		wc = append(wc, "name LIKE :name")
 	}
 
-	if filter.Cost != nil {
-		data["cost"] = filter.Cost
-		wc = append(wc, "cost = :cost")
-	}
-
-	if filter.Quantity != nil {
-		data["quantity"] = filter.Quantity
-		wc = append(wc, "quantity = :quantity")
+	if filter.Price != nil {
+		data["price"] = filter.Price
+		wc = append(wc, "price = :price")
 	}
 
 	if len(wc) > 0 {

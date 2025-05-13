@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/sdk/delegate"
 	"github.com/rmsj/service/business/sdk/order"
 	"github.com/rmsj/service/business/sdk/page"
@@ -21,8 +20,7 @@ import (
 // Set of error variables for CRUD operations.
 var (
 	ErrNotFound     = errors.New("product not found")
-	ErrUserDisabled = errors.New("user disabled")
-	ErrInvalidCost  = errors.New("cost not valid")
+	ErrInvalidPrice = errors.New("price not valid")
 )
 
 // Storer interface declares the behavior this package needs to persist and
@@ -35,27 +33,22 @@ type Storer interface {
 	Query(ctx context.Context, filter QueryFilter, orderBy order.By, page page.Page) ([]Product, error)
 	Count(ctx context.Context, filter QueryFilter) (int, error)
 	QueryByID(ctx context.Context, productID uuid.UUID) (Product, error)
-	QueryByUserID(ctx context.Context, userID uuid.UUID) ([]Product, error)
 }
 
 // Business manages the set of APIs for product access.
 type Business struct {
 	log      *logger.Logger
-	userBus  *userbus.Business
 	delegate *delegate.Delegate
 	storer   Storer
 }
 
 // NewBusiness constructs a product business API for use.
-func NewBusiness(log *logger.Logger, userBus *userbus.Business, delegate *delegate.Delegate, storer Storer) *Business {
+func NewBusiness(log *logger.Logger, delegate *delegate.Delegate, storer Storer) *Business {
 	b := Business{
 		log:      log,
-		userBus:  userBus,
 		delegate: delegate,
 		storer:   storer,
 	}
-
-	b.registerDelegateFunctions()
 
 	return &b
 }
@@ -68,14 +61,8 @@ func (b *Business) NewWithTx(tx sqldb.CommitRollbacker) (*Business, error) {
 		return nil, err
 	}
 
-	userBus, err := b.userBus.NewWithTx(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	bus := Business{
 		log:      b.log,
-		userBus:  userBus,
 		delegate: b.delegate,
 		storer:   storer,
 	}
@@ -88,23 +75,12 @@ func (b *Business) Create(ctx context.Context, np NewProduct) (Product, error) {
 	ctx, span := otel.AddSpan(ctx, "business.productbus.create")
 	defer span.End()
 
-	usr, err := b.userBus.QueryByID(ctx, np.UserID)
-	if err != nil {
-		return Product{}, fmt.Errorf("user.querybyid: %s: %w", np.UserID, err)
-	}
-
-	if !usr.Enabled {
-		return Product{}, ErrUserDisabled
-	}
-
 	now := time.Now()
 
 	prd := Product{
 		ID:          uuid.New(),
 		Name:        np.Name,
-		Cost:        np.Cost,
-		Quantity:    np.Quantity,
-		UserID:      np.UserID,
+		Price:       np.Price,
 		DateCreated: now,
 		DateUpdated: now,
 	}
@@ -125,12 +101,8 @@ func (b *Business) Update(ctx context.Context, prd Product, up UpdateProduct) (P
 		prd.Name = *up.Name
 	}
 
-	if up.Cost != nil {
-		prd.Cost = *up.Cost
-	}
-
-	if up.Quantity != nil {
-		prd.Quantity = *up.Quantity
+	if up.Price != nil {
+		prd.Price = *up.Price
 	}
 
 	prd.DateUpdated = time.Now()
@@ -186,17 +158,4 @@ func (b *Business) QueryByID(ctx context.Context, productID uuid.UUID) (Product,
 	}
 
 	return prd, nil
-}
-
-// QueryByUserID finds the products by a specified User ID.
-func (b *Business) QueryByUserID(ctx context.Context, userID uuid.UUID) ([]Product, error) {
-	ctx, span := otel.AddSpan(ctx, "business.productbus.querybyuserid")
-	defer span.End()
-
-	prds, err := b.storer.QueryByUserID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("query: %w", err)
-	}
-
-	return prds, nil
 }

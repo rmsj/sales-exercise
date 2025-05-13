@@ -10,10 +10,8 @@ import (
 func toAppProduct(prd productbus.Product) productapp.Product {
 	return productapp.Product{
 		ID:          prd.ID.String(),
-		UserID:      prd.UserID.String(),
 		Name:        prd.Name.String(),
-		Cost:        prd.Cost.Value(),
-		Quantity:    prd.Quantity.Value(),
+		Price:       prd.Price.Value(),
 		DateCreated: prd.DateCreated.Format(time.RFC3339),
 		DateUpdated: prd.DateUpdated.Format(time.RFC3339),
 	}

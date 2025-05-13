@@ -10,6 +10,5 @@ const (
 	OrderByProductID = "a"
 	OrderByUserID    = "b"
 	OrderByName      = "c"
-	OrderByCost      = "d"
-	OrderByQuantity  = "e"
+	OrderByPrice     = "d"
 )

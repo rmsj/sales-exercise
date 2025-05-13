@@ -3,10 +3,12 @@ package productapp
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/rmsj/service/app/sdk/errs"
-	"github.com/rmsj/service/app/sdk/mid"
 	"github.com/rmsj/service/app/sdk/query"
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/sdk/order"
@@ -30,7 +32,7 @@ func (a *app) create(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.New(errs.InvalidArgument, err)
 	}
 
-	np, err := toBusNewProduct(ctx, app)
+	np, err := toBusNewProduct(app)
 	if err != nil {
 		return errs.New(errs.InvalidArgument, err)
 	}
@@ -54,9 +56,17 @@ func (a *app) update(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.New(errs.InvalidArgument, err)
 	}
 
-	prd, err := mid.GetProduct(ctx)
+	pID, err := a.productID(r)
 	if err != nil {
-		return errs.Newf(errs.Internal, "product missing in context: %s", err)
+		return errs.New(errs.Internal, err)
+	}
+
+	prd, err := a.productBus.QueryByID(ctx, pID)
+	if err != nil {
+		if errors.Is(err, productbus.ErrNotFound) {
+			return errs.Newf(errs.NotFound, "invalid product id: %s", pID)
+		}
+		return errs.Newf(errs.Internal, "error getting product to update - please try again or contact support")
 	}
 
 	updPrd, err := a.productBus.Update(ctx, prd, up)
@@ -67,10 +77,18 @@ func (a *app) update(ctx context.Context, r *http.Request) web.Encoder {
 	return toAppProduct(updPrd)
 }
 
-func (a *app) delete(ctx context.Context, _ *http.Request) web.Encoder {
-	prd, err := mid.GetProduct(ctx)
+func (a *app) delete(ctx context.Context, r *http.Request) web.Encoder {
+	pID, err := a.productID(r)
 	if err != nil {
-		return errs.Newf(errs.Internal, "productID missing in context: %s", err)
+		return errs.New(errs.Internal, err)
+	}
+
+	prd, err := a.productBus.QueryByID(ctx, pID)
+	if err != nil {
+		if errors.Is(err, productbus.ErrNotFound) {
+			return errs.Newf(errs.NotFound, "invalid product id: %s", pID)
+		}
+		return errs.Newf(errs.Internal, "error getting product to delete - please try again or contact support")
 	}
 
 	if err := a.productBus.Delete(ctx, prd); err != nil {
@@ -112,10 +130,23 @@ func (a *app) query(ctx context.Context, r *http.Request) web.Encoder {
 }
 
 func (a *app) queryByID(ctx context.Context, r *http.Request) web.Encoder {
-	prd, err := mid.GetProduct(ctx)
+	productID, err := a.productID(r)
+	if err != nil {
+		return errs.New(errs.Internal, err)
+	}
+
+	prd, err := a.productBus.QueryByID(ctx, productID)
 	if err != nil {
 		return errs.Newf(errs.Internal, "querybyid: %s", err)
 	}
 
 	return toAppProduct(prd)
+}
+
+func (a *app) productID(r *http.Request) (uuid.UUID, error) {
+	id := web.Param(r, "product_id")
+	if id == "" {
+		return uuid.Nil, errs.Newf(errs.Internal, "product id not in request")
+	}
+	return uuid.Parse(id)
 }

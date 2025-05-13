@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/google/uuid"
 	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/business/types/name"
-	"github.com/rmsj/service/business/types/quantity"
 )
 
 // TestGenerateNewProducts is a helper method for testing.
-func TestGenerateNewProducts(n int, userID uuid.UUID) []NewProduct {
+func TestGenerateNewProducts(n int) []NewProduct {
 	newPrds := make([]NewProduct, n)
 
 	idx := rand.Intn(10000)
@@ -20,10 +18,8 @@ func TestGenerateNewProducts(n int, userID uuid.UUID) []NewProduct {
 		idx++
 
 		np := NewProduct{
-			Name:     name.MustParse(fmt.Sprintf("Name%d", idx)),
-			Cost:     money.MustParse(float64(rand.Intn(500))),
-			Quantity: quantity.MustParse(rand.Intn(50)),
-			UserID:   userID,
+			Name:  name.MustParse(fmt.Sprintf("Name%d", idx)),
+			Price: money.MustParse(float64(rand.Intn(500))),
 		}
 
 		newPrds[i] = np
@@ -33,8 +29,8 @@ func TestGenerateNewProducts(n int, userID uuid.UUID) []NewProduct {
 }
 
 // TestGenerateSeedProducts is a helper method for testing.
-func TestGenerateSeedProducts(ctx context.Context, n int, api *Business, userID uuid.UUID) ([]Product, error) {
-	newPrds := TestGenerateNewProducts(n, userID)
+func TestGenerateSeedProducts(ctx context.Context, n int, api *Business) ([]Product, error) {
+	newPrds := TestGenerateNewProducts(n)
 
 	prds := make([]Product, len(newPrds))
 	for i, np := range newPrds {

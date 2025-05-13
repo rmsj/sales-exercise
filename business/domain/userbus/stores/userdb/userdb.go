@@ -61,9 +61,9 @@ func (s *Store) NewWithTx(tx sqldb.CommitRollbacker) (userbus.Storer, error) {
 func (s *Store) Create(ctx context.Context, usr userbus.User) error {
 	const q = `
 	INSERT INTO users
-		(user_id, name, email, mobile, profile_image, password_hash, roles, department, enabled, created_at, updated_at)
+		(id, name, email, password_hash, roles, department, enabled, created_at, updated_at)
 	VALUES
-		(:user_id, :name, :email, :mobile, :profile_image, :password_hash, :roles, :department, :enabled, :created_at, :updated_at)`
+		(:id, :name, :email, :password_hash, :roles, :department, :enabled, :created_at, :updated_at)`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDBUser(usr)); err != nil {
 		if errors.Is(err, sqldb.ErrDBDuplicatedEntry) {
@@ -85,15 +85,13 @@ func (s *Store) Update(ctx context.Context, usr userbus.User) error {
 	SET 
 		name = :name,
 		email = :email,
-		mobile = :mobile,
-		profile_image = :profile_image,
 		roles = :roles,
 		password_hash = :password_hash,
 		department = :department,
 		enabled = :enabled,
 		updated_at = :updated_at
 	WHERE
-		user_id = :user_id`
+		id = :id`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDBUser(usr)); err != nil {
 		if errors.Is(err, sqldb.ErrDBDuplicatedEntry) {
@@ -112,7 +110,7 @@ func (s *Store) Delete(ctx context.Context, usr userbus.User) error {
 	DELETE FROM
 		users
 	WHERE
-		user_id = :user_id`
+		id = :id`
 
 	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDBUser(usr)); err != nil {
 		return fmt.Errorf("namedexeccontext: %w", err)
@@ -131,7 +129,7 @@ func (s *Store) Query(ctx context.Context, filter userbus.QueryFilter, orderBy o
 
 	const q = `
 	SELECT
-		user_id, name, email, password_hash, roles, department, enabled, created_at, updated_at
+		id, name, email, password_hash, roles, department, enabled, created_at, updated_at
 	FROM
 		users`
 
@@ -158,7 +156,7 @@ func (s *Store) Query(ctx context.Context, filter userbus.QueryFilter, orderBy o
 func (s *Store) Count(ctx context.Context, filter userbus.QueryFilter) (int, error) {
 	data := map[string]any{}
 
-	const q = "SELECT COUNT(user_id) AS `count` FROM users"
+	const q = "SELECT COUNT(id) AS `count` FROM users"
 
 	buf := bytes.NewBufferString(q)
 	applyFilter(filter, data, buf)
@@ -181,18 +179,18 @@ func (s *Store) QueryByID(ctx context.Context, userID uuid.UUID) (userbus.User, 
 	}
 
 	data := struct {
-		ID string `db:"user_id"`
+		ID string `db:"id"`
 	}{
 		ID: userID.String(),
 	}
 
 	const q = `
 	SELECT
-        user_id, name, email, password_hash, roles, department, enabled, created_at, updated_at
+        id, name, email, password_hash, roles, department, enabled, created_at, updated_at
 	FROM
 		users
 	WHERE 
-		user_id = :user_id`
+		id = :id`
 
 	var dbUsr user
 	if err := sqldb.NamedQueryStruct(ctx, s.log, s.db, q, data, &dbUsr); err != nil {
@@ -225,7 +223,7 @@ func (s *Store) QueryByEmail(ctx context.Context, email mail.Address) (userbus.U
 
 	const q = `
 	SELECT
-        user_id, name, email, password_hash, roles, department, enabled, created_at, updated_at
+        id, name, email, password_hash, roles, department, enabled, created_at, updated_at
 	FROM
 		users
 	WHERE
