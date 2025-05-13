@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/sales/app/sdk/errs"
-	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/sales/app/sdk/errs"
+	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
 )
 
 // QueryParams represents the set of possible query strings.

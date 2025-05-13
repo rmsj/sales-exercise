@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/homeguardian-ai/sales/api/sdk/http/apitest"
-	"github.com/homeguardian-ai/sales/app/sdk/auth"
-	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/sales/business/domain/userbus"
-	"github.com/homeguardian-ai/sales/business/sdk/dbtest"
+	"github.com/rmsj/sales/api/sdk/http/apitest"
+	"github.com/rmsj/sales/app/sdk/auth"
+	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/sales/business/domain/userbus"
+	"github.com/rmsj/sales/business/sdk/dbtest"
 )
 
 func insertSeedData(db *dbtest.Database, ath *auth.Auth) (apitest.SeedData, error) {

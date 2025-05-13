@@ -12,11 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/sales/business/sdk/order"
-	"github.com/homeguardian-ai/sales/business/sdk/page"
-	"github.com/homeguardian-ai/sales/business/sdk/sqldb"
-	"github.com/homeguardian-ai/sales/foundation/logger"
+	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/sales/business/sdk/order"
+	"github.com/rmsj/sales/business/sdk/page"
+	"github.com/rmsj/sales/business/sdk/sqldb"
+	"github.com/rmsj/sales/foundation/logger"
 )
 
 // Store manages the set of APIs for {{.DomainLower}} database access.

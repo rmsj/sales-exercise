@@ -1,9 +1,9 @@
 package {{.DomainLower}}app
 
 import (
-	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
 
-	"github.com/homeguardian-ai/sales/business/sdk/order"
+	"github.com/rmsj/sales/business/sdk/order"
 )
 
 var defaultOrderBy = order.NewBy("{{.DomainLower}}_id", order.ASC)

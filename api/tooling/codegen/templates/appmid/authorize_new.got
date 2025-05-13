@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/sales/app/sdk/auth"
-	"github.com/homeguardian-ai/sales/app/sdk/authclient"
-	"github.com/homeguardian-ai/sales/app/sdk/errs"
-	"github.com/homeguardian-ai/sales/business/domain/groupbus"
-	"github.com/homeguardian-ai/sales/foundation/web"
+	"github.com/rmsj/sales/app/sdk/auth"
+	"github.com/rmsj/sales/app/sdk/authclient"
+	"github.com/rmsj/sales/app/sdk/errs"
+	"github.com/rmsj/sales/business/domain/groupbus"
+	"github.com/rmsj/sales/foundation/web"
 )
 
 // Authorize{{.DomainUpper}} executes the specified role and extracts the specified

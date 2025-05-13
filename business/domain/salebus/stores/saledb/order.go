@@ -1,14 +1,15 @@
-package {{.DomainLower}}db
+package saledb
 
 import (
 	"fmt"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/order"
+	"github.com/rmsj/service/business/domain/salebus"
+	"github.com/rmsj/service/business/sdk/order"
 )
 
 var orderByFields = map[string]string{
-	{{.DomainLower}}bus.OrderByID:   "id",
+	salebus.OrderBySaleID: "id",
+	salebus.OrderByAmount: "amount",
 }
 
 func orderByClause(orderBy order.By) (string, error) {

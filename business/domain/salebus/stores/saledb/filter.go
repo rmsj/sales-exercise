@@ -1,13 +1,13 @@
-package {{.DomainLower}}db
+package saledb
 
 import (
 	"bytes"
 	"strings"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/domain/salebus"
 )
 
-func (s *Store) applyFilter(filter {{.DomainLower}}bus.QueryFilter, data map[string]any, buf *bytes.Buffer) {
+func (s *Store) applyFilter(filter salebus.QueryFilter, data map[string]any, buf *bytes.Buffer) {
 	var wc []string
 
 	if filter.ID != nil {

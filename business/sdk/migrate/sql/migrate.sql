@@ -40,6 +40,7 @@ CREATE TABLE sales
     id         CHAR(36)     NOT NULL,
     user_id    CHAR(36)     NOT NULL,
     discount   NUMERIC(10, 2) NULL,
+    amount     NUMERIC(10, 2) NULL,
     updated_at TIMESTAMP(6) NOT NULL,
     created_at TIMESTAMP(6) NOT NULL,
 
@@ -53,16 +54,15 @@ CREATE TABLE sales
 -- Description: Create table products
 CREATE TABLE sale_items
 (
-    id         CHAR(36)       NOT NULL,
     sale_id    CHAR(36)       NOT NULL,
     product_id CHAR(36)       NOT NULL,
     quantity   INT(3)   NOT NULL,
     discount   NUMERIC(10, 2) NULL,
-    price      NUMERIC(10, 2) NOT NULL,
+    amount     NUMERIC(10, 2) NOT NULL,
     updated_at TIMESTAMP(6)   NOT NULL,
     created_at TIMESTAMP(6)   NOT NULL,
 
-    PRIMARY KEY (id),
+    PRIMARY KEY (sale_id, product_id),
     FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
 ) ENGINE = InnoDB
