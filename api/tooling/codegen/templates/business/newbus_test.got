@@ -1,0 +1,241 @@
+package {{.DomainLower}}bus_test
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/page"
+
+	"github.com/homeguardian-ai/hg-engine/business/sdk/dbtest"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/unitest"
+)
+
+func Test_{{.DomainUpper}}(t *testing.T) {
+	t.Parallel()
+
+	db := dbtest.New(t, "Test_{{.DomainUpper}}")
+
+	sd, err := insertSeedData(db.BusDomain)
+	if err != nil {
+		t.Fatalf("Seeding error: %s", err)
+	}
+
+	// -------------------------------------------------------------------------
+
+	unitest.Run(t, query(db.BusDomain, sd), "query")
+	unitest.Run(t, create(db.BusDomain), "create")
+	unitest.Run(t, update(db.BusDomain, sd), "update")
+	unitest.Run(t, delete(db.BusDomain, sd), "delete")
+}
+
+// =============================================================================
+
+func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
+	ctx := context.Background()
+
+	{{.DomainLower}}s, err := {{.DomainLower}}bus.TestSeed{{.DomainUpper}}s(ctx, 1, busDomain.{{.DomainUpper}})
+	if err != nil {
+		return unitest.SeedData{}, fmt.Errorf("seeding {{.DomainLower}}s : %w", err)
+	}
+
+	td1 := unitest.{{.DomainUpper}}{
+		{{.DomainVarU}}: {{.DomainLower}}s[0],
+	}
+	// -------------------------------------------------------------------------
+
+	{{.DomainLower}}s, err = {{.DomainLower}}bus.TestSeed{{.DomainUpper}}s(ctx, 1, busDomain.{{.DomainUpper}})
+	if err != nil {
+		return unitest.SeedData{}, fmt.Errorf("seeding {{.DomainLower}}s : %w", err)
+	}
+
+	td2 := unitest.{{.DomainUpper}}{
+		{{.DomainVarU}}: {{.DomainLower}}s[0],
+	}
+
+	// -------------------------------------------------------------------------
+
+	sd := unitest.SeedData{
+		{{.DomainVarU}}s: []unitest.{{.DomainUpper}}{td1, td2},
+	}
+
+	return sd, nil
+}
+
+// =============================================================================
+
+func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
+	{{.DomainVar}}s := make([]{{.DomainLower}}bus.{{.DomainUpper}}, 0, len(sd.{{.DomainUpper}}s))
+
+	for _, data := range sd.{{.DomainUpper}}s {
+		{{.DomainVar}}s = append({{.DomainVar}}s, data.{{.DomainUpper}})
+	}
+
+	sort.Slice({{.DomainVar}}s, func(i, j int) bool {
+		return {{.DomainVar}}s[i].ID.String() <= {{.DomainVar}}s[j].ID.String()
+	})
+
+	table := []unitest.Table{
+		{
+			Name:    "all",
+			ExpResp: {{.DomainVar}}s,
+			ExcFunc: func(ctx context.Context) any {
+				filter := {{.DomainLower}}bus.QueryFilter{}
+
+				resp, err := busDomain.{{.DomainUpper}}.Query(ctx, filter, {{.DomainLower}}bus.DefaultOrderBy, page.MustParse("1", "20"))
+				if err != nil {
+					return err
+				}
+
+				return resp
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp, exists := got.([]{{.DomainLower}}bus.{{.DomainUpper}})
+				if !exists {
+					return "error occurred"
+				}
+
+				expResp := exp.([]{{.DomainLower}}bus.{{.DomainUpper}})
+
+				for i := range gotResp {
+					if gotResp[i].ID == expResp[i].ID {
+						expResp[i].UpdatedAt = gotResp[i].UpdatedAt
+						expResp[i].CreatedAt = gotResp[i].CreatedAt
+					}
+				}
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+		{
+			Name:    "byid",
+			ExpResp: sd.{{.DomainUpper}}s[1].{{.DomainUpper}},
+			ExcFunc: func(ctx context.Context) any {
+				resp, err := busDomain.{{.DomainUpper}}.QueryByID(ctx, sd.{{.DomainUpper}}s[1].ID)
+				if err != nil {
+					return err
+				}
+
+				return resp
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp, exists := got.({{.DomainLower}}bus.{{.DomainUpper}})
+				if !exists {
+					return "error occurred"
+				}
+
+				expResp := exp.({{.DomainLower}}bus.{{.DomainUpper}})
+
+				if gotResp.ID == expResp.ID {
+					expResp.UpdatedAt = gotResp.UpdatedAt
+					expResp.CreatedAt = gotResp.CreatedAt
+				}
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+	}
+
+	return table
+}
+
+func create(busDomain dbtest.BusDomain) []unitest.Table {
+	table := []unitest.Table{
+		{
+			Name: "basic",
+			ExpResp: {{.DomainLower}}bus.{{.DomainUpper}}{
+			},
+			ExcFunc: func(ctx context.Context) any {
+				ng := {{.DomainLower}}bus.New{{.DomainUpper}}{
+				}
+
+				resp, err := busDomain.{{.DomainUpper}}.Create(ctx, ng)
+				if err != nil {
+					return err
+				}
+
+				return resp
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp, exists := got.({{.DomainLower}}bus.{{.DomainUpper}})
+				if !exists {
+					return "error occurred"
+				}
+
+				expResp := exp.({{.DomainLower}}bus.{{.DomainUpper}})
+
+				expResp.ID = gotResp.ID
+				expResp.UpdatedAt = gotResp.UpdatedAt
+				expResp.CreatedAt = gotResp.CreatedAt
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+	}
+
+	return table
+}
+
+func update(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
+
+	table := []unitest.Table{
+		{
+			Name: "basic",
+			ExpResp: {{.DomainLower}}bus.{{.DomainUpper}}{
+				ID:        sd.{{.DomainUpper}}s[0].ID,
+				CreatedAt: sd.{{.DomainUpper}}s[0].CreatedAt,
+			},
+			ExcFunc: func(ctx context.Context) any {
+				uo := {{.DomainLower}}bus.Update{{.DomainUpper}}{
+				}
+
+				resp, err := busDomain.{{.DomainUpper}}.Update(ctx, sd.{{.DomainUpper}}s[0].{{.DomainUpper}}, uo)
+				if err != nil {
+					return err
+				}
+
+				return resp
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp, exists := got.({{.DomainLower}}bus.{{.DomainUpper}})
+				if !exists {
+					return "error occurred"
+				}
+
+				expResp := exp.({{.DomainLower}}bus.{{.DomainUpper}})
+
+				expResp.UpdatedAt = gotResp.UpdatedAt
+				expResp.CreatedAt = gotResp.CreatedAt
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+	}
+
+	return table
+}
+
+func delete(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
+	table := []unitest.Table{
+		{
+			Name:    "{{.DomainLower}}-delete",
+			ExpResp: nil,
+			ExcFunc: func(ctx context.Context) any {
+				if err := busDomain.{{.DomainUpper}}.Delete(ctx, sd.{{.DomainUpper}}s[1].{{.DomainUpper}}); err != nil {
+					return err
+				}
+
+				return nil
+			},
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+	}
+
+	return table
+}

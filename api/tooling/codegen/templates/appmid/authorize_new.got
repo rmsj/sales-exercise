@@ -1,0 +1,65 @@
+package mid
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/app/sdk/auth"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/authclient"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+	"github.com/homeguardian-ai/hg-engine/business/domain/groupbus"
+	"github.com/homeguardian-ai/hg-engine/foundation/web"
+)
+
+// Authorize{{.DomainUpper}} executes the specified role and extracts the specified
+// {{.DomainLower}} from the DB if a group id is specified in the call. Depending on
+// the rule specified, the userid from the claims may be compared with the
+// specified user id from the group.
+func Authorize{{.DomainUpper}}(client *authclient.Client, {{.DomainLower}}Bus *{{.DomainLower}}bus.Business) web.MidFunc {
+	m := func(next web.HandlerFunc) web.HandlerFunc {
+		h := func(ctx context.Context, r *http.Request) web.Encoder {
+			var userID uuid.UUID
+			id := web.Param(r, "{{.DomainLower}}_id")
+			if id != "" {
+				{{.DomainLower}}ID, err := uuid.Parse(id)
+				if err != nil {
+					return errs.New(errs.Unauthenticated, ErrInvalidID)
+				}
+
+				{{.DomainVar}}, err := {{.DomainLower}}Bus.QueryByID(ctx, {{.DomainLower}}ID)
+				if err != nil {
+					switch {
+					case errors.Is(err, {{.DomainLower}}bus.ErrNotFound):
+						return errs.New(errs.Unauthenticated, err)
+					default:
+						return errs.Newf(errs.Internal, "querybyid: {{.DomainLower}}ID[%s]: %s", id, err)
+					}
+				}
+
+				userID = {{.DomainVar}}.UserID
+			}
+
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			defer cancel()
+
+			a := authclient.Authorize{
+				Claims: GetClaims(ctx),
+				UserID: userID,
+				Rule:   auth.RuleSupportOrSubject,
+			}
+
+			if err := client.Authorize(ctx, a); err != nil {
+				return errs.New(errs.Unauthenticated, err)
+			}
+
+			return next(ctx, r)
+		}
+		return h
+	}
+
+	return m
+}

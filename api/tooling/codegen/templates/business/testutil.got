@@ -1,0 +1,41 @@
+package {{.DomainLower}}bus
+
+import (
+	"context"
+	"fmt"
+	"math/rand"
+)
+
+// TestGenerateNew{{.DomainUpper}}s is a helper method for testing.
+func TestGenerate{{.DomainUpper}}s(n int) []New{{.DomainUpper}} {
+	new{{.DomainVarU}}s := make([]New{{.DomainUpper}}, n)
+
+	idx := rand.Intn(10000)
+
+	for i := 0; i < n; i++ {
+		{{.DomainNewVar}} := New{{.DomainUpper}}{
+		}
+
+		new{{.DomainVarU}}s[i] = {{.DomainNewVar}}
+		idx++
+	}
+
+	return new{{.DomainVarU}}s
+}
+
+// TestSeed{{.DomainUpper}}s is a helper method for testing.
+func TestSeed{{.DomainUpper}}s(n int, api *Business) ([]{{.DomainUpper}}, error) {
+	new{{.DomainVarU}}s := TestGenerate{{.DomainUpper}}s(n)
+
+	{{.DomainVar}}s := make([]{{.DomainUpper}}, len(new{{.DomainVarU}}s))
+	for i, {{.DomainNewVar}} := range new{{.DomainVarU}}s {
+		{{.DomainVar}}, err := api.Create(context.Background(), {{.DomainNewVar}})
+		if err != nil {
+			return nil, fmt.Errorf("seeding {{.DomainLower}}s: idx: %d : %w", i, err)
+		}
+
+		{{.DomainVar}}s[i] = {{.DomainVar}}
+	}
+
+	return {{.DomainVar}}s, nil
+}

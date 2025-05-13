@@ -1,0 +1,191 @@
+// Package {{.DomainLower}}db contains events related CRUD functionality.
+package {{.DomainLower}}db
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/viccon/sturdyc"
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/order"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/page"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/sqldb"
+	"github.com/homeguardian-ai/hg-engine/foundation/logger"
+)
+
+// Store manages the set of APIs for {{.DomainLower}} database access.
+type Store struct {
+	log   *logger.Logger
+	db    sqlx.ExtContext
+	cache *sturdyc.Client[{{.DomainLower}}bus.{{.DomainUpper}}]
+}
+
+// NewStore constructs the api for data access.
+func NewStore(log *logger.Logger, db *sqlx.DB) *Store {
+	const capacity = 10000
+	const numShards = 10
+	const evictionPercentage = 10
+
+	return &Store{
+		log:   log,
+		db:    db,
+		cache: sturdyc.New[{{.DomainLower}}bus.{{.DomainUpper}}](capacity, numShards, 10*time.Second, evictionPercentage),
+	}
+}
+
+// NewWithTx constructs a new Store value replacing the sqlx DB
+// value with a sqlx DB value that is currently inside a transaction.
+func (s *Store) NewWithTx(tx sqldb.CommitRollbacker) ({{.DomainLower}}bus.Storer, error) {
+	ec, err := sqldb.GetExtContext(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	store := Store{
+		log:   s.log,
+		db:    ec,
+		cache: s.cache,
+	}
+
+	return &store, nil
+}
+
+// Create adds a {{.DomainUpper}} to the sqldb. It returns the created {{.DomainUpper}} with
+// fields like ID and CreatedAt populated.
+func (s *Store) Create(ctx context.Context, {{.DomainLower}} {{.DomainLower}}bus.{{.DomainUpper}}) error {
+	const q = `
+	INSERT INTO {{.DomainLower}}s
+		(id, updated_at, created_at)
+	VALUES
+		(:id, :updated_at, :created_at)`
+
+	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDB{{.DomainUpper}}({{.DomainLower}})); err != nil {
+		return fmt.Errorf("namedexeccontext: %w", err)
+	}
+
+	s.writeCache({{.DomainLower}})
+
+	return nil
+}
+
+// Update updates the {{.DomainLower}} fields according to request It will error if the specified ID does not reference an existing {{.DomainLower}}
+func (s *Store) Update(ctx context.Context, {{.DomainVar}} {{.DomainLower}}bus.{{.DomainUpper}}) error {
+	const q = `
+	UPDATE
+		{{.DomainLower}}s
+	SET
+		updated_at = :updated_at
+	WHERE
+		id = :id`
+
+	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, toDB{{.DomainUpper}}({{.DomainVar}})); err != nil {
+		return fmt.Errorf("namedexeccontext: %w", err)
+	}
+
+	s.writeCache({{.DomainVar}})
+
+	return nil
+}
+
+// Delete removes the {{.DomainLower}} identified by a given ID.
+func (s *Store) Delete(ctx context.Context, {{.DomainVar}} {{.DomainLower}}bus.{{.DomainUpper}}) error {
+	data := struct {
+		ID        string    `db:"id"`
+	}{
+		ID:        {{.DomainVar}}.ID.String(),
+	}
+
+	//TODO: check if we are doing soft delete
+	const q = `DELETE FROM {{.DomainLower}}s WHERE id = :id`
+
+	if err := sqldb.NamedExecContext(ctx, s.log, s.db, q, data); err != nil {
+		return fmt.Errorf("namedexeccontext: %w", err)
+	}
+
+	s.deleteCache({{.DomainLower}})
+
+	return nil
+}
+
+// Query gets all {{.DomainLower}}s from the database.
+func (s *Store) Query(ctx context.Context, filter {{.DomainLower}}bus.QueryFilter, orderBy order.By, page page.Page) ([]{{.DomainLower}}bus.{{.DomainUpper}}, error) {
+	data := map[string]any{
+		"offset":        (page.Number() - 1) * page.RowsPerPage(),
+		"rows_per_page": page.RowsPerPage(),
+	}
+
+	const q = `SELECT * FROM {{.DomainLower}}s`
+
+	buf := bytes.NewBufferString(q)
+	s.applyFilter(filter, data, buf)
+
+	orderByClause, err := orderByClause(orderBy)
+	if err != nil {
+		return nil, err
+	}
+
+	buf.WriteString(orderByClause)
+	buf.WriteString(" LIMIT :rows_per_page OFFSET :offset")
+
+	var db{{.DomainUpper}}s []db{{.DomainUpper}}
+	if err := sqldb.NamedQuerySlice(ctx, s.log, s.db, buf.String(), data, &db{{.DomainUpper}}s); err != nil {
+		return nil, fmt.Errorf("namedqueryslice: %w", err)
+	}
+
+	return toBus{{.DomainUpper}}s(db{{.DomainUpper}}s), nil
+}
+
+// Count returns the total number of {{.DomainLower}}s in the DB.
+func (s *Store) Count(ctx context.Context, filter {{.DomainLower}}bus.QueryFilter) (int, error) {
+	data := map[string]any{}
+
+	const q = "SELECT COUNT(id) AS `count` FROM {{.DomainLower}}s"
+
+	buf := bytes.NewBufferString(q)
+	s.applyFilter(filter, data, buf)
+
+	var count struct {
+		Count int `db:"count"`
+	}
+	if err := sqldb.NamedQueryStruct(ctx, s.log, s.db, buf.String(), data, &count); err != nil {
+		return 0, fmt.Errorf("namedquerystruct: %w", err)
+	}
+
+	return count.Count, nil
+}
+
+// QueryByID finds the {{.DomainLower}} identified by a given ID.
+func (s *Store) QueryByID(ctx context.Context, {{.DomainVar}}ID uuid.UUID) ({{.DomainLower}}bus.{{.DomainUpper}}, error) {
+
+	cached{{.DomainUpper}}, ok := s.readCache({{.DomainVar}}ID.String())
+	if ok {
+		return cached{{.DomainUpper}}, nil
+	}
+
+	data := struct {
+		ID string `db:"id"`
+	}{
+		ID: {{.DomainVar}}ID.String(),
+	}
+
+	const q = `SELECT * FROM {{.DomainLower}}s WHERE id = :id AND deleted_at IS NULL`
+
+	var db{{.DomainVar}} db{{.DomainUpper}}
+	if err := sqldb.NamedQueryStruct(ctx, s.log, s.db, q, data, &db{{.DomainVar}}); err != nil {
+		if errors.Is(err, sqldb.ErrDBNotFound) {
+			return {{.DomainLower}}bus.{{.DomainUpper}}{}, fmt.Errorf("namedquerystruct: %w", {{.DomainLower}}bus.ErrNotFound)
+		}
+		return {{.DomainLower}}bus.{{.DomainUpper}}{}, fmt.Errorf("namedquerystruct: %w", err)
+	}
+
+	{{.DomainVar}} := toBus{{.DomainUpper}}(db{{.DomainVar}})
+	s.writeCache({{.DomainVar}})
+
+	return {{.DomainVar}}, nil
+}

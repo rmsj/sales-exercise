@@ -1,0 +1,20 @@
+package {{.DomainLower}}api
+
+import (
+	"net/http"
+
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+)
+
+func parseQueryParams(r *http.Request) ({{.DomainLower}}app.QueryParams, error) {
+	values := r.URL.Query()
+
+	filter := {{.DomainLower}}app.QueryParams{
+		Page:    values.Get("page"),
+		Rows:    values.Get("rows"),
+		OrderBy: values.Get("order_by"),
+		ID:      values.Get("{{.DomainLower}}_id"),
+	}
+
+	return filter, nil
+}

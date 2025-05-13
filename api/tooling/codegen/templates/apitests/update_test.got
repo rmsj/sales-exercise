@@ -1,0 +1,96 @@
+package {{.DomainLower}}api_test
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/homeguardian-ai/hg-engine/api/sdk/http/apitest"
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+)
+
+func update200(sd apitest.SeedData) []apitest.Table {
+	table := []apitest.Table{
+		{
+			Name:       "basic",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s/%s", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Users[0].Token,
+			Method:     http.MethodPut,
+			StatusCode: http.StatusOK,
+			Input: &{{.DomainLower}}app.Update{{.DomainUpper}}{
+			},
+			GotResp: &{{.DomainLower}}app.{{.DomainUpper}}{},
+			ExpResp: &{{.DomainLower}}app.{{.DomainUpper}}{
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp := got.(*{{.DomainLower}}app.{{.DomainUpper}})
+				expResp := exp.(*{{.DomainLower}}app.{{.DomainUpper}})
+
+				expResp.ID = gotResp.ID
+				// fields with default values, database or otherwise...
+				expResp.UpdatedAt = gotResp.UpdatedAt
+				expResp.CreatedAt = gotResp.CreatedAt
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+	}
+
+	return table
+}
+
+func update400(sd apitest.SeedData) []apitest.Table {
+	table := []apitest.Table{
+		{
+			Name:       "bad-input",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s/%s", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Users[0].Token,
+			Method:     http.MethodPut,
+			StatusCode: http.StatusBadRequest,
+			Input: &{{.DomainLower}}app.Update{{.DomainUpper}}{
+				// add something that will cause a validation error
+			},
+			GotResp: &errs.Error{},
+			ExpResp: errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"field_name\",\"error\":\"field_name validation message\"}]"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+	}
+
+	return table
+}
+
+func update401(sd apitest.SeedData) []apitest.Table {
+	table := []apitest.Table{
+		{
+			Name:       "emptytoken",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s/%s", sd.{{.DomainUpper}}s[0].ID),
+			Token:      "&nbsp;",
+			Method:     http.MethodPut,
+			StatusCode: http.StatusUnauthorized,
+			GotResp:    &errs.Error{},
+			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed: token contains an invalid number of segments"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+		{
+			Name:       "badsig",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s/%s", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Users[0].Token + "A",
+			Method:     http.MethodPut,
+			StatusCode: http.StatusUnauthorized,
+			GotResp:    &errs.Error{},
+			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed: crypto/rsa: verification error"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+		// you can add more validations like wrong user trying to update, only admin can do something, etc
+	}
+
+	return table
+}

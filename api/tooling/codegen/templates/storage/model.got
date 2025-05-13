@@ -1,0 +1,48 @@
+package {{.DomainLower}}db
+
+import (
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+type db{{.DomainUpper}} struct {
+	ID        uuid.UUID    `db:"id"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	CreatedAt time.Time    `db:"created_at"`
+}
+
+func toDB{{.DomainUpper}}(bus {{.DomainLower}}bus.{{.DomainUpper}}) db{{.DomainUpper}} {
+	{{.DomainLower}}DB := db{{.DomainUpper}}{
+		ID:        bus.ID,
+		UpdatedAt: bus.UpdatedAt,
+		CreatedAt: bus.CreatedAt,
+	}
+
+	return {{.DomainLower}}DB
+}
+
+//lint:ignore U1000 temp
+func toBus{{.DomainUpper}}(db db{{.DomainUpper}}) {{.DomainLower}}bus.{{.DomainUpper}} {
+	{{.DomainVar}} := {{.DomainLower}}bus.{{.DomainUpper}}{
+		ID:        db.ID,
+		UpdatedAt: db.UpdatedAt,
+		CreatedAt: db.CreatedAt,
+	}
+
+	return {{.DomainVar}}
+}
+
+//lint:ignore U1000 temp
+func toBus{{.DomainUpper}}s(dbs []db{{.DomainUpper}}) []{{.DomainLower}}bus.{{.DomainUpper}} {
+	bus := make([]{{.DomainLower}}bus.{{.DomainUpper}}, len(dbs))
+
+	for i, {{.DomainVar}} := range dbs {
+		bus[i] = toBus{{.DomainUpper}}({{.DomainVar}})
+	}
+
+	return bus
+}

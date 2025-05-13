@@ -1,0 +1,41 @@
+package {{.DomainLower}}api_test
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/homeguardian-ai/hg-engine/api/sdk/http/apitest"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/auth"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/hg-engine/business/domain/userbus"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/dbtest"
+)
+
+func insertSeedData(db *dbtest.Database, ath *auth.Auth) (apitest.SeedData, error) {
+	ctx := context.Background()
+	busDomain := db.BusDomain
+
+	//TODO: remove if user not necessary (unlikely) and add more users with different roles
+	usrs, err := userbus.TestSeedUsers(ctx, 2, nil, userbus.Roles.User, busDomain.User)
+	if err != nil {
+		return apitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
+	}
+
+	//TODO: Adjust Seed method as needed and the apitest Type as well
+	{{.DomainVar}}s, err := {{.DomainLower}}bus.TestSeed{{.DomainUpper}}s(ctx, 2)
+	if err != nil {
+		return apitest.SeedData{}, fmt.Errorf("seeding {{.DomainLower}}s : %w", err)
+	}
+
+	td1 := apitest.User{
+		User:  usrs[0],
+		{{.DomainUpper}}s:  {{.DomainVar}}s,
+		Token: apitest.Token(db.BusDomain.User, ath, usrs[0].Email.Address),
+	}
+
+	sd := apitest.SeedData{
+		Users:  []apitest.User{td1},
+	}
+
+	return sd, nil
+}

@@ -1,0 +1,125 @@
+// Package {{.DomainLower}}app maintains the app layer api for {{.DomainLower}} domain.
+package {{.DomainLower}}app
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/mid"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/query"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/order"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/page"
+)
+
+type App struct {
+	{{.DomainLower}}Bus *{{.DomainLower}}bus.Business
+}
+
+func NewApp({{.DomainLower}} *{{.DomainLower}}bus.Business) *App {
+	return &App{
+		{{.DomainLower}}Bus: {{.DomainLower}},
+	}
+}
+
+// newWithTx constructs a new Handlers value with the domain apis
+// using a store transaction that was created via middleware.
+func (a *App) newWithTx(ctx context.Context) (*App, error) {
+	tx, err := mid.GetTran(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	{{.DomainLower}}Bus, err := a.{{.DomainLower}}Bus.NewWithTx(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	app := App{
+		{{.DomainLower}}Bus: {{.DomainLower}}Bus,
+	}
+
+	return &app, nil
+}
+
+// Create adds a new {{.DomainLower}} to the system.
+func (a *App) Create(ctx context.Context, app New{{.DomainUpper}}) ({{.DomainUpper}}, error) {
+
+	{{.DomainVar}}, err := a.{{.DomainLower}}Bus.Create(ctx, toBusNew{{.DomainUpper}}(app))
+	if err != nil {
+		return {{.DomainUpper}}{}, errs.Newf(errs.Internal, "create: {{.DomainVar}}[%+v]: %s", {{.DomainVar}}, err)
+	}
+	return toApp{{.DomainUpper}}({{.DomainVar}}), nil
+}
+
+// Update updates a {{.DomainLower}} in the system.
+func (a *App) Update(ctx context.Context, {{.DomainLower}}ID uuid.UUID, app Update{{.DomainUpper}}) ({{.DomainUpper}}, error) {
+
+	{{.DomainVar}}, err := a.{{.DomainLower}}Bus.QueryByID(ctx, {{.DomainLower}}ID)
+	if err != nil {
+		return {{.DomainUpper}}{}, errs.Newf(errs.Internal, "error getting {{.DomainLower}} to update: %s", err)
+	}
+
+	upd{{.DomainVarU}}, err := a.{{.DomainLower}}Bus.Update(ctx, {{.DomainVar}}, toBusUpdate{{.DomainUpper}}(app))
+	if err != nil {
+		return {{.DomainUpper}}{}, errs.Newf(errs.Internal, "update: {{.DomainLower}}ID[%s]: %v", {{.DomainVar}}.ID, err)
+	}
+
+	return toApp{{.DomainUpper}}(upd{{.DomainVarU}}), nil
+}
+
+// Delete removes a {{.DomainLower}} from the system.
+func (a *App) Delete(ctx context.Context, {{.DomainLower}}ID uuid.UUID) error {
+	{{.DomainVar}}, err := a.{{.DomainLower}}Bus.QueryByID(ctx, {{.DomainLower}}ID)
+	if err != nil {
+		return errs.Newf(errs.Internal, "error getting {{.DomainLower}} to delete: %s", err)
+	}
+
+	if err := a.{{.DomainLower}}Bus.Delete(ctx, {{.DomainVar}}); err != nil {
+		return fmt.Errorf("delete: {{.DomainLower}}ID[%s]: %w", {{.DomainVar}}.ID, err)
+	}
+
+	return nil
+}
+
+// Query returns a list of {{.DomainLower}}s with paging.
+func (a *App) Query(ctx context.Context, qp QueryParams) (query.Result[{{.DomainUpper}}], error) {
+	pg, err := page.Parse(qp.Page, qp.Rows)
+	if err != nil {
+		return query.Result[{{.DomainUpper}}]{}, err
+	}
+
+	filter, err := parseFilter(qp)
+	if err != nil {
+		return query.Result[{{.DomainUpper}}]{}, err
+	}
+
+	orderBy, err := order.Parse(orderByFields, qp.OrderBy, defaultOrderBy)
+	if err != nil {
+		return query.Result[{{.DomainUpper}}]{}, err
+	}
+
+	{{.DomainVar}}s, err := a.{{.DomainLower}}Bus.Query(ctx, filter, orderBy, pg)
+	if err != nil {
+		return query.Result[{{.DomainUpper}}]{}, errs.Newf(errs.Internal, "query: %s", err)
+	}
+
+	total, err := a.{{.DomainLower}}Bus.Count(ctx, filter)
+	if err != nil {
+		return query.Result[{{.DomainUpper}}]{}, errs.Newf(errs.Internal, "count: %s", err)
+	}
+
+	return query.NewResult(toApp{{.DomainUpper}}s({{.DomainVar}}s), total, pg), nil
+}
+
+// QueryByID returns a {{.DomainLower}} by its ID.
+func (a *App) QueryByID(ctx context.Context, {{.DomainLower}}ID uuid.UUID) ({{.DomainUpper}}, error) {
+	{{.DomainVar}}, err := a.{{.DomainLower}}Bus.QueryByID(ctx, {{.DomainLower}}ID)
+	if err != nil {
+		return {{.DomainUpper}}{}, errs.Newf(errs.Internal, "cannot find {{.DomainLower}}: %s", err)
+	}
+	return toApp{{.DomainUpper}}({{.DomainVar}}), nil
+}

@@ -1,0 +1,130 @@
+package
+
+import (
+	"fmt"
+	"net/http"
+	"sort"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/rmsj/service/app/sdk/apitest"
+	"github.com/rmsj/service/app/sdk/errs"
+	"github.com/rmsj/service/app/sdk/query"
+)
+{{.DomainLower}}api_test
+
+import (
+	"fmt"
+	"net/http"
+	"sort"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/homeguardian-ai/hg-engine/api/sdk/http/apitest"
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/query"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+func query200(sd apitest.SeedData) []apitest.Table {
+	{{.DomainVar}}s := make([]{{.DomainLower}}bus.{{.DomainUpper}}, 0, len(sd.{{.DomainUpper}}s))
+
+	for _, {{.DomainVar}} := range sd.{{.DomainUpper}}s {
+		{{.DomainVar}}s = append({{.DomainVar}}s, {{.DomainVar}}.{{.DomainUpper}})
+	}
+
+	sort.Slice({{.DomainVar}}s, func(i, j int) bool {
+		return {{.DomainVar}}s[i].ID.String() <= {{.DomainVar}}s[j].ID.String()
+	})
+
+	table := []apitest.Table{
+		{
+			Name:       "basic",
+			URL:        "/v1/{{.DomainLower}}s?page=1&rows=10&order_by=id,ASC&name=Name",
+			Token:      sd.Admins[0].Token,
+			StatusCode: http.StatusOK,
+			Method:     http.MethodGet,
+			GotResp:    &query.Result[{{.DomainLower}}app.{{.DomainUpper}}]{},
+			ExpResp: &query.Result[{{.DomainLower}}app.{{.DomainUpper}}]{
+				Page:        1,
+				RowsPerPage: 10,
+				Total:       len({{.DomainVar}}s),
+				Items:       toApp{{.DomainUpper}}s({{.DomainVar}}s),
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp := got.(*query.Result[{{.DomainLower}}app.{{.DomainUpper}}])
+				expResp := exp.(*query.Result[{{.DomainLower}}app.{{.DomainUpper}}])
+
+				for i := range gotResp.Items {
+					// update db fields with default values
+					if gotResp.Items[i].ID == expResp.Items[i].ID {
+						expResp.Items[i].UpdatedAt = gotResp.Items[i].UpdatedAt
+						expResp.Items[i].CreatedAt = gotResp.Items[i].CreatedAt
+					}
+				}
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+	}
+
+	return table
+}
+
+func query400(sd apitest.SeedData) []apitest.Table {
+	table := []apitest.Table{
+		{
+			Name:       "bad-query-filter",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s?page=1&rows=10&email=a.com", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Admins[0].Token,
+			StatusCode: http.StatusBadRequest,
+			Method:     http.MethodGet,
+			GotResp:    &errs.Error{},
+			ExpResp:    errs.Newf(errs.InvalidArgument, "[{\"field\":\"email\",\"error\":\"mail: missing '@' or angle-addr\"}]"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+		{
+			Name:       "bad-orderby-value",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s?page=1&rows=10&orderBy=ser_id,ASC", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Admins[0].Token,
+			StatusCode: http.StatusBadRequest,
+			Method:     http.MethodGet,
+			GotResp:    &errs.Error{},
+			ExpResp:    errs.Newf(errs.InvalidArgument, "[{\"field\":\"order\",\"error\":\"unknown order: ser_id\"}]"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+	}
+
+	return table
+}
+
+func queryByID200(sd apitest.SeedData) []apitest.Table {
+	table := []apitest.Table{
+		{
+			Name:       "basic",
+			URL:        fmt.Sprintf("/v1/{{.DomainLower}}s/%s", sd.{{.DomainUpper}}s[0].ID),
+			Token:      sd.Users[0].Token,
+			StatusCode: http.StatusOK,
+			Method:     http.MethodGet,
+			GotResp:    &{{.DomainLower}}app.{{.DomainUpper}}{},
+			ExpResp:    toApp{{.DomainUpper}}Ptr(sd.{{.DomainUpper}}s[0].{{.DomainUpper}}),
+			CmpFunc: func(got any, exp any) string {
+				resp := got.(*{{.DomainLower}}app.{{.DomainUpper}})
+				expResp := exp.(*{{.DomainLower}}app.{{.DomainUpper}})
+
+				expResp.ID = resp.ID
+				// fields with default values, database or otherwise...
+				expResp.UpdatedAt = resp.UpdatedAt
+				expResp.CreatedAt = resp.CreatedAt
+
+				return cmp.Diff(got, exp)
+			},
+		},
+	}
+
+	return table
+}

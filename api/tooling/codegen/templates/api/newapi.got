@@ -1,0 +1,105 @@
+// Package {{.DomainLower}}api maintains the web based api for user {{.DomainLower}} access.
+package {{.DomainLower}}api
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+	"github.com/homeguardian-ai/hg-engine/foundation/web"
+)
+
+type api struct {
+	{{.DomainVar}}App *{{.DomainLower}}app.App
+}
+
+func newAPI({{.DomainVar}}App *{{.DomainLower}}app.App) *api {
+	return &api{
+		{{.DomainVar}}App: {{.DomainVar}}App,
+	}
+}
+
+func (api *api) create(ctx context.Context, r *http.Request) web.Encoder {
+	var app {{.DomainLower}}app.New{{.DomainUpper}}
+	if err := web.Decode(r, &app); err != nil {
+		return errs.New(errs.InvalidArgument, err)
+	}
+
+	{{.DomainVar}}, err := api.{{.DomainVar}}App.Create(ctx, app)
+	if err != nil {
+		return errs.NewError(err)
+	}
+
+	return {{.DomainVar}}
+}
+
+func (api *api) update(ctx context.Context, r *http.Request) web.Encoder {
+	var app {{.DomainLower}}app.Update{{.DomainUpper}}
+	if err := web.Decode(r, &app); err != nil {
+		return errs.New(errs.InvalidArgument, err)
+	}
+
+	{{.DomainVar}}ID, err := api.{{.DomainLower}}ID(r)
+	if err != nil {
+		return errs.New(errs.Internal, err)
+	}
+
+	usr, err := api.{{.DomainVar}}App.Update(ctx, {{.DomainVar}}ID, app)
+	if err != nil {
+		return errs.NewError(err)
+	}
+
+	return usr
+}
+
+func (api *api) delete(ctx context.Context, r *http.Request) web.Encoder {
+	{{.DomainVar}}ID, err := api.{{.DomainLower}}ID(r)
+	if err != nil {
+		return errs.New(errs.Internal, err)
+	}
+
+	if err := api.{{.DomainVar}}App.Delete(ctx, {{.DomainVar}}ID); err != nil {
+		return errs.NewError(err)
+	}
+
+	return nil
+}
+
+func (api *api) query(ctx context.Context, r *http.Request) web.Encoder {
+	qp, err := parseQueryParams(r)
+	if err != nil {
+		return errs.New(errs.InvalidArgument, err)
+	}
+
+	{{.DomainVar}}, err := api.{{.DomainVar}}App.Query(ctx, qp)
+	if err != nil {
+		return errs.NewError(err)
+	}
+
+	return {{.DomainVar}}
+}
+
+func (api *api) queryByID(ctx context.Context, r *http.Request) web.Encoder {
+	{{.DomainVar}}ID, err := api.{{.DomainLower}}ID(r)
+	if err != nil {
+		return errs.New(errs.Internal, err)
+	}
+
+	{{.DomainVar}}, err := api.{{.DomainVar}}App.QueryByID(ctx, {{.DomainVar}}ID)
+	if err != nil {
+		return errs.NewError(err)
+	}
+
+	return {{.DomainVar}}
+}
+
+func (api *api) {{.DomainLower}}ID(r *http.Request) (uuid.UUID, error) {
+	id := web.Param(r, "{{.DomainLower}}_id")
+	if id == "" {
+		return uuid.Nil, errs.Newf(errs.Internal, "{{.DomainLower}} id not in request")
+	}
+	return uuid.Parse(id)
+}

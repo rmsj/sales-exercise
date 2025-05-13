@@ -1,0 +1,33 @@
+package {{.DomainLower}}api_test
+
+import (
+	"time"
+
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+func toApp{{.DomainUpper}}(bus {{.DomainLower}}bus.{{.DomainUpper}}) {{.DomainLower}}app.{{.DomainUpper}} {
+
+	app := {{.DomainLower}}app.{{.DomainUpper}}{
+		ID:                bus.ID.String(),
+		UpdatedAt:         bus.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:         bus.CreatedAt.Format(time.RFC3339),
+	}
+
+	return app
+}
+
+func toApp{{.DomainUpper}}s(bus []{{.DomainLower}}bus.{{.DomainUpper}}) []{{.DomainLower}}app.{{.DomainUpper}} {
+	items := make([]{{.DomainLower}}app.{{.DomainUpper}}, len(bus))
+	for i, usr := range bus {
+		items[i] = toApp{{.DomainUpper}}(usr)
+	}
+
+	return items
+}
+
+func toApp{{.DomainUpper}}Ptr(bus {{.DomainLower}}bus.{{.DomainUpper}}) *{{.DomainLower}}app.{{.DomainUpper}} {
+	app := toApp{{.DomainUpper}}(bus)
+	return &app
+}

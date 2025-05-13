@@ -1,0 +1,118 @@
+services:
+  database:
+    image: mysql:9.2.0
+    container_name: database
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=engine
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_password
+    volumes:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin", "-uroot", "-proot_password", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    cpu_count: 2
+    networks:
+      sales-system-network:
+        ipv4_address: 10.5.0.2
+
+  init-migrate-seed:
+    image: localhost/rmsj/sales:${TAG}
+    pull_policy: never
+    container_name: init-migrate-seed
+    restart: unless-stopped
+    entrypoint: ['./admin', 'migrate-seed']
+    environment:
+      - SALE_DB_USER=root
+      - SALE_DB_PASSWORD=root_password
+      - SALE_DB_NAME=engine
+      - SALE_DB_HOST=database
+      - SALE_DB_DISABLE_TLS=true
+    networks:
+      sales-system-network:
+        ipv4_address: 10.5.0.10
+    deploy:
+      restart_policy:
+        condition: none
+    depends_on:
+      - database
+
+  auth:
+    env_file: "./.env"
+    image: localhost/rmsj/auth:${TAG}
+    pull_policy: never
+    container_name: auth
+    restart: unless-stopped
+    ports:
+      - "6000:6000"
+      - "6010:6010"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6000/v1/liveness || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 2
+      start_period: 2s
+    cpu_count: 2
+    expose:
+      - "6000:6000"
+      - "6010:6010"
+    networks:
+      sales-system-network:
+        ipv4_address: 10.5.0.5
+    depends_on:
+      - database
+
+  sales:
+    image: localhost/rmsj/sales:${TAG}
+    pull_policy: never
+    container_name: sales
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3010:3010"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/v1/liveness || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 2
+      start_period: 2s
+    networks:
+      sales-system-network:
+        ipv4_address: 10.5.0.15
+    depends_on:
+      - init-migrate-seed
+
+  metrics:
+    image: localhost/rmsj/metrics:${TAG}
+    pull_policy: never
+    container_name: metrics
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+      - "4010:4010"
+      - "4020:4020"
+    cpus: 1
+    environment:
+      - GOMAXPROCS=1
+      - METRICS_COLLECT_FROM=http://sales:3010/debug/vars
+    networks:
+      sales-system-network:
+        ipv4_address: 10.5.0.20
+    depends_on:
+      - sales
+
+volumes:
+  database: {}
+
+networks:
+  sales-system-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/24

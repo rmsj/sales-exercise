@@ -1,0 +1,13 @@
+package {{.DomainLower}}app
+
+import (
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+
+	"github.com/homeguardian-ai/hg-engine/business/sdk/order"
+)
+
+var defaultOrderBy = order.NewBy("{{.DomainLower}}_id", order.ASC)
+
+var orderByFields = map[string]string{
+	"{{.DomainLower}}_id":    {{.DomainLower}}bus.OrderByID,
+}

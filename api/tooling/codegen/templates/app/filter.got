@@ -1,0 +1,23 @@
+package {{.DomainLower}}app
+
+import (
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+func parseFilter(qp QueryParams) ({{.DomainLower}}bus.QueryFilter, error) {
+
+	var filter {{.DomainLower}}bus.QueryFilter
+
+	if qp.ID != "" {
+		id, err := uuid.Parse(qp.ID)
+		if err != nil {
+			return {{.DomainLower}}bus.QueryFilter{}, errs.NewFieldErrors("id", err)
+		}
+		filter.ID = &id
+	}
+
+	return filter, nil
+}

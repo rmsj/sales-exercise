@@ -1,0 +1,41 @@
+package {{.DomainLower}}api
+
+import (
+	"net/http"
+
+	"github.com/jmoiron/sqlx"
+
+	"github.com/homeguardian-ai/hg-engine/app/sdk/mid"
+	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/hg-engine/app/sdk/authclient"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/hg-engine/business/sdk/sqldb"
+	"github.com/homeguardian-ai/hg-engine/foundation/logger"
+	"github.com/homeguardian-ai/hg-engine/foundation/web"
+)
+
+// Config contains all the mandatory systems required by handlers.
+type Config struct {
+	Log        *logger.Logger
+	DB         *sqlx.DB
+	{{.DomainUpper}}Bus *{{.DomainLower}}bus.Business
+	AuthClient *authclient.Client
+}
+
+// Routes adds specific routes for this group.
+func Routes(app *web.App, cfg Config) {
+	const version = "v1"
+
+	authenticate := mid.Authenticate(cfg.AuthClient)
+	ruleAuthorize{{.DomainUpper}} := mid.Authorize{{.DomainUpper}}(cfg.AuthClient, cfg.{{.DomainUpper}}Bus)
+
+	transaction := mid.BeginCommitRollback(cfg.Log, sqldb.NewBeginner(cfg.DB))
+
+	// TODO: adjust path variables - remove space
+	{{.DomainVar}}API := newAPI({{.DomainLower}}app.NewApp(cfg.{{.DomainUpper}}Bus))
+	app.HandlerFunc(http.MethodGet, version, "/{{.DomainLower}}s", {{.DomainVar}}API.query, authenticate, ruleAuthorize{{.DomainUpper}})
+	app.HandlerFunc(http.MethodGet, version, "/{{.DomainLower}}s/{ {{.DomainLower}}_id}", {{.DomainVar}}API.queryByID, authenticate, ruleAuthorize{{.DomainUpper}})
+	app.HandlerFunc(http.MethodPost, version, "/{{.DomainLower}}s", {{.DomainVar}}API.create, authenticate, ruleAuthorize{{.DomainUpper}}, transaction)
+	app.HandlerFunc(http.MethodPut, version, "/{{.DomainLower}}s/{ {{.DomainLower}}_id}", {{.DomainVar}}API.update, authenticate, ruleAuthorize{{.DomainUpper}}, transaction)
+	app.HandlerFunc(http.MethodDelete, version, "/{{.DomainLower}}s/{ {{.DomainLower}}_id}", {{.DomainVar}}API.delete, authenticate, ruleAuthorize{{.DomainUpper}}, transaction)
+}

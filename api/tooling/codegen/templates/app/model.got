@@ -1,0 +1,105 @@
+package {{.DomainLower}}app
+
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+// QueryParams represents the set of possible query strings.
+type QueryParams struct {
+	Page    string
+	Rows    string
+	OrderBy string
+	ID      string
+}
+
+// {{.DomainUpper}} represents information about an individual {{.DomainLower}}.
+type {{.DomainUpper}} struct {
+	ID                 uuid.UUID   `json:"id"`
+	UpdatedAt          string `json:"updatedAt" validate:"datetime=2006-01-02T15:04:05Z07:00"`
+	CreatedAt          string `json:"createdAt" validate:"datetime=2006-01-02T15:04:05Z07:00"`
+}
+
+// Encode implements the encoder interface.
+func (app {{.DomainUpper}}) Encode() ([]byte, string, error) {
+	data, err := json.Marshal(app)
+	return data, "application/json", err
+}
+
+func toApp{{.DomainUpper}}(bus {{.DomainLower}}bus.{{.DomainUpper}}) {{.DomainUpper}} {
+	app := {{.DomainUpper}}{
+		ID:        bus.ID,
+		UpdatedAt: bus.UpdatedAt.Format(time.RFC3339),
+		CreatedAt: bus.CreatedAt.Format(time.RFC3339),
+	}
+
+	return app
+}
+
+func toApp{{.DomainUpper}}s(bus []{{.DomainLower}}bus.{{.DomainUpper}}) []{{.DomainUpper}} {
+	items := make([]{{.DomainUpper}}, len(bus))
+	for i, b := range bus {
+		items[i] = toApp{{.DomainUpper}}(b)
+	}
+
+	return items
+}
+
+// New{{.DomainUpper}} defines the data needed to add a new {{.DomainLower}}.
+type New{{.DomainUpper}} struct {
+	// add fields with json and validate tags
+}
+
+func toBusNew{{.DomainUpper}}(app New{{.DomainUpper}}) {{.DomainLower}}bus.New{{.DomainUpper}} {
+	bus := {{.DomainLower}}bus.New{{.DomainUpper}}{
+		// add fields as necessary
+	}
+
+	return bus
+}
+
+// Decode implements the decoder interface.
+func (app *New{{.DomainUpper}}) Decode(data []byte) error {
+	return json.Unmarshal(data, app)
+}
+
+// Validate checks the data in the model is considered clean.
+func (app New{{.DomainUpper}}) Validate() error {
+	if err := errs.Check(app); err != nil {
+		return errs.Newf(errs.InvalidArgument, "validate: %s", err)
+	}
+	return nil
+}
+
+// Update{{.DomainUpper}} defines the data needed to update a {{.DomainLower}}.
+type Update{{.DomainUpper}} struct {
+	// add fields with json and validate tags
+}
+
+func toBusUpdate{{.DomainUpper}}(app Update{{.DomainUpper}}) {{.DomainLower}}bus.Update{{.DomainUpper}} {
+
+	bus := {{.DomainLower}}bus.Update{{.DomainUpper}}{
+		// add fields as necessary
+	}
+
+	return bus
+}
+
+// Decode implements the decoder interface.
+func (app *Update{{.DomainUpper}}) Decode(data []byte) error {
+	return json.Unmarshal(data, app)
+}
+
+// Validate checks the data in the model is considered clean.
+func (app Update{{.DomainUpper}}) Validate() error {
+	if err := errs.Check(app); err != nil {
+		return errs.Newf(errs.InvalidArgument, "validate: %s", err)
+	}
+
+	return nil
+}

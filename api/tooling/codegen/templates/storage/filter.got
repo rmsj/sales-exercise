@@ -1,0 +1,22 @@
+package {{.DomainLower}}db
+
+import (
+	"bytes"
+	"strings"
+
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+func (s *Store) applyFilter(filter {{.DomainLower}}bus.QueryFilter, data map[string]any, buf *bytes.Buffer) {
+	var wc []string
+
+	if filter.ID != nil {
+		data["id"] = *filter.ID
+		wc = append(wc, "id = :id")
+	}
+
+	if len(wc) > 0 {
+		buf.WriteString(" WHERE ")
+		buf.WriteString(strings.Join(wc, " AND "))
+	}
+}

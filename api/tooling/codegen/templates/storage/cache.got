@@ -1,0 +1,25 @@
+package {{.DomainLower}}db
+
+import (
+	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+)
+
+// readCache performs a safe search in the cache for the specified key.
+func (s *Store) readCache(key string) ({{.DomainLower}}bus.{{.DomainUpper}}, bool) {
+	{{.DomainLower}}, exists := s.cache.Get(key)
+	if !exists {
+		return {{.DomainLower}}bus.{{.DomainUpper}}{}, false
+	}
+
+	return {{.DomainLower}}, true
+}
+
+// writeCache performs a safe write to the cache for the specified {{.DomainLower}}.
+func (s *Store) writeCache(bus {{.DomainLower}}bus.{{.DomainUpper}}) {
+	s.cache.Set(bus.ID.String(), bus)
+}
+
+// deleteCache performs a safe removal from the cache for the specified {{.DomainLower}}.
+func (s *Store) deleteCache(bus {{.DomainLower}}bus.{{.DomainUpper}}) {
+	s.cache.Delete(bus.ID.String())
+}
