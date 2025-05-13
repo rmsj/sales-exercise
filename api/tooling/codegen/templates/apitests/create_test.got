@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rmsj/sales/api/sdk/http/apitest"
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
-	"github.com/rmsj/sales/app/sdk/errs"
-	"github.com/rmsj/sales/business/sdk/notify"
+	"github.com/rmsj/service/api/sdk/http/apitest"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/app/sdk/errs"
+	"github.com/rmsj/service/business/sdk/notify"
 )
 
 func create200(sd apitest.SeedData) []apitest.Table {

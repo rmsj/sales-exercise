@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/page"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/sdk/page"
 
-	"github.com/rmsj/sales/business/sdk/dbtest"
-	"github.com/rmsj/sales/business/sdk/unitest"
+	"github.com/rmsj/service/business/sdk/dbtest"
+	"github.com/rmsj/service/business/sdk/unitest"
 )
 
 func Test_{{.DomainUpper}}(t *testing.T) {

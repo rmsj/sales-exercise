@@ -3,8 +3,8 @@ package {{.DomainLower}}app
 import (
 	"github.com/google/uuid"
 
-	"github.com/rmsj/sales/app/sdk/errs"
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/app/sdk/errs"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
 )
 
 func parseFilter(qp QueryParams) ({{.DomainLower}}bus.QueryFilter, error) {

@@ -2,11 +2,13 @@ package saledb
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/rmsj/service/business/domain/salebus"
+	"github.com/rmsj/service/business/types/money"
 )
 
 type dbSale struct {
@@ -29,11 +31,12 @@ type dbSaleItem struct {
 }
 
 func toDBSale(bus salebus.Sale) dbSale {
+
 	saleDB := dbSale{
 		ID:        bus.ID,
 		UserID:    bus.UserID,
-		Discount:  sql.NullFloat64{Float64: bus.Discount, Valid: bus.Discount > 0},
-		Amount:    bus.Amount,
+		Discount:  sql.NullFloat64{Float64: bus.Discount.Value(), Valid: bus.Discount.Value() > 0},
+		Amount:    bus.Amount.Value(),
 		UpdatedAt: bus.UpdatedAt,
 		CreatedAt: bus.CreatedAt,
 	}
@@ -42,12 +45,23 @@ func toDBSale(bus salebus.Sale) dbSale {
 }
 
 //lint:ignore U1000 temp
-func toBusSale(db dbSale, items []dbSaleItem) salebus.Sale {
+func toBusSale(db dbSale, items []dbSaleItem) (salebus.Sale, error) {
+
+	discount, err := money.Parse(db.Discount.Float64)
+	if err != nil {
+		return salebus.Sale{}, fmt.Errorf("parse discount: %w", err)
+	}
+
+	amount, err := money.Parse(db.Amount)
+	if err != nil {
+		return salebus.Sale{}, fmt.Errorf("parse amount: %w", err)
+	}
+
 	sl := salebus.Sale{
 		ID:        db.ID,
 		UserID:    db.UserID,
-		Discount:  db.Discount.Float64,
-		Amount:    db.Amount,
+		Discount:  discount,
+		Amount:    amount,
 		UpdatedAt: db.UpdatedAt,
 		CreatedAt: db.CreatedAt,
 	}
@@ -59,28 +73,35 @@ func toBusSale(db dbSale, items []dbSaleItem) salebus.Sale {
 			saleItems = append(saleItems, item)
 		}
 	}
-	sl.Items = toBusSaleItems(saleItems)
+	sl.Items, err = toBusSaleItems(saleItems)
+	if err != nil {
+		return salebus.Sale{}, fmt.Errorf("parse items: %w", err)
+	}
 
-	return sl
+	return sl, nil
 }
 
 //lint:ignore U1000 temp
-func toBusSales(dbs []dbSale, dbItems []dbSaleItem) []salebus.Sale {
+func toBusSales(dbs []dbSale, dbItems []dbSaleItem) ([]salebus.Sale, error) {
 	bus := make([]salebus.Sale, len(dbs))
 
 	for i, sl := range dbs {
-		bus[i] = toBusSale(sl, dbItems)
+		var err error
+		bus[i], err = toBusSale(sl, dbItems)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return bus
+	return bus, nil
 }
 
 func toDBSaleItem(bus salebus.SaleItem) dbSaleItem {
 	saleItemDB := dbSaleItem{
 		SaleID:    bus.SaleID,
 		ProductID: bus.ProductID,
-		Discount:  sql.NullFloat64{Float64: bus.Discount, Valid: bus.Discount > 0},
-		Amount:    bus.Amount,
+		Discount:  sql.NullFloat64{Float64: bus.Discount.Value(), Valid: bus.Discount.Value() > 0},
+		Amount:    bus.Amount.Value(),
 		UpdatedAt: bus.UpdatedAt,
 		CreatedAt: bus.CreatedAt,
 	}
@@ -89,26 +110,41 @@ func toDBSaleItem(bus salebus.SaleItem) dbSaleItem {
 }
 
 //lint:ignore U1000 temp
-func toBusSaleItem(db dbSaleItem) salebus.SaleItem {
+func toBusSaleItem(db dbSaleItem) (salebus.SaleItem, error) {
+
+	discount, err := money.Parse(db.Discount.Float64)
+	if err != nil {
+		return salebus.SaleItem{}, fmt.Errorf("parse discount: %w", err)
+	}
+
+	amount, err := money.Parse(db.Amount)
+	if err != nil {
+		return salebus.SaleItem{}, fmt.Errorf("parse amount: %w", err)
+	}
+
 	slItem := salebus.SaleItem{
 		SaleID:    db.SaleID,
 		ProductID: db.ProductID,
-		Discount:  db.Discount.Float64,
-		Amount:    db.Amount,
+		Discount:  discount,
+		Amount:    amount,
 		UpdatedAt: db.UpdatedAt,
 		CreatedAt: db.CreatedAt,
 	}
 
-	return slItem
+	return slItem, nil
 }
 
 //lint:ignore U1000 temp
-func toBusSaleItems(dbs []dbSaleItem) []salebus.SaleItem {
+func toBusSaleItems(dbs []dbSaleItem) ([]salebus.SaleItem, error) {
 	bus := make([]salebus.SaleItem, len(dbs))
 
 	for i, sli := range dbs {
-		bus[i] = toBusSaleItem(sli)
+		var err error
+		bus[i], err = toBusSaleItem(sli)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return bus
+	return bus, nil
 }

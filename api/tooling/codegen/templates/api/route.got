@@ -5,13 +5,13 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/rmsj/sales/app/sdk/mid"
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
-	"github.com/rmsj/sales/app/sdk/authclient"
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/sqldb"
-	"github.com/rmsj/sales/foundation/logger"
-	"github.com/rmsj/sales/foundation/web"
+	"github.com/rmsj/service/app/sdk/mid"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/app/sdk/authclient"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/sdk/sqldb"
+	"github.com/rmsj/service/foundation/logger"
+	"github.com/rmsj/service/foundation/web"
 )
 
 // Config contains all the mandatory systems required by handlers.

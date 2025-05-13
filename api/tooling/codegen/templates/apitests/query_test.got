@@ -20,10 +20,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rmsj/sales/api/sdk/http/apitest"
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
-	"github.com/rmsj/sales/app/sdk/query"
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/api/sdk/http/apitest"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/app/sdk/query"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
 )
 
 func query200(sd apitest.SeedData) []apitest.Table {

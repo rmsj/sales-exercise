@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
 )
 
 type db{{.DomainUpper}} struct {

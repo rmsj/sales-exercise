@@ -8,13 +8,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rmsj/sales/business/sdk/ctxtime"
-	"github.com/rmsj/sales/business/sdk/id"
-	"github.com/rmsj/sales/business/sdk/order"
-	"github.com/rmsj/sales/business/sdk/page"
-	"github.com/rmsj/sales/business/sdk/sqldb"
-	"github.com/rmsj/sales/foundation/logger"
-	"github.com/rmsj/sales/foundation/otel"
+	"github.com/rmsj/service/business/sdk/ctxtime"
+	"github.com/rmsj/service/business/sdk/id"
+	"github.com/rmsj/service/business/sdk/order"
+	"github.com/rmsj/service/business/sdk/page"
+	"github.com/rmsj/service/business/sdk/sqldb"
+	"github.com/rmsj/service/foundation/logger"
+	"github.com/rmsj/service/foundation/otel"
 )
 
 // ErrNotFound is the error variables for CRUD operations.

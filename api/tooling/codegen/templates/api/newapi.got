@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
-	"github.com/rmsj/sales/app/sdk/errs"
-	"github.com/rmsj/sales/foundation/web"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/app/sdk/errs"
+	"github.com/rmsj/service/foundation/web"
 )
 
 type api struct {

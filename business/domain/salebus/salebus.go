@@ -14,6 +14,7 @@ import (
 	"github.com/rmsj/service/business/sdk/order"
 	"github.com/rmsj/service/business/sdk/page"
 	"github.com/rmsj/service/business/sdk/sqldb"
+	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/foundation/logger"
 	"github.com/rmsj/service/foundation/otel"
 )
@@ -80,43 +81,61 @@ func (b *Business) Create(ctx context.Context, ns NewSale) (Sale, error) {
 
 	slDB := Sale{
 		ID:        id.New(),
+		UserID:    ns.UserID,
 		Discount:  ns.Discount,
 		UpdatedAt: now,
 		CreatedAt: now,
 	}
 
 	var saleAmount float64
+	var err error
 	for _, item := range ns.Items {
-		saleAmount += float64(item.Quantity) * item.Price
+		saleAmount += float64(item.Quantity) * item.Price.Value()
 	}
-	slDB.Amount = saleAmount
+	slDB.Amount, err = money.Parse(saleAmount)
+	if err != nil {
+		return Sale{}, fmt.Errorf("create sale: %w", err)
+	}
 
-	if ns.Discount > slDB.Amount {
+	if ns.Discount.Value() > slDB.Amount.Value() {
 		return Sale{}, fmt.Errorf("discount[%f] is greater than total sale amount[%f]", ns.Discount, slDB.Amount)
 	}
 
 	// items
 	var distributedDiscount float64
 	for _, item := range ns.Items {
-		itemAmount := float64(item.Quantity) * item.Price
+		itemAmount := float64(item.Quantity) * item.Price.Value()
 		proportion := itemAmount / saleAmount
-		itemDiscount := roundToTwoDecimals(proportion * ns.Discount)
+		itemDiscount := roundToTwoDecimals(proportion * ns.Discount.Value())
+
+		itemDiscountMoney, err := money.Parse(itemDiscount)
+		if err != nil {
+			return Sale{}, fmt.Errorf("create sale: %w", err)
+		}
+		itemAmountMoney, err := money.Parse(itemAmount)
+		if err != nil {
+			return Sale{}, fmt.Errorf("create sale: %w", err)
+		}
 
 		saleItem := SaleItem{
 			SaleID:    slDB.ID,
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
-			Discount:  itemDiscount,
-			Amount:    itemAmount,
-			UpdatedAt: time.Time{},
-			CreatedAt: time.Time{},
+			Discount:  itemDiscountMoney,
+			Amount:    itemAmountMoney,
+			UpdatedAt: now,
+			CreatedAt: now,
 		}
 		distributedDiscount += itemDiscount
 		slDB.Items = append(slDB.Items, saleItem)
 	}
 
-	if ns.Discount != distributedDiscount {
-		slDB.Items[0].Discount += ns.Discount - distributedDiscount
+	if ns.Discount.Value() != distributedDiscount {
+		newDiscount, err := money.Parse(slDB.Items[0].Discount.Value() + (ns.Discount.Value() - distributedDiscount))
+		if err != nil {
+			return Sale{}, fmt.Errorf("create sale: %w", err)
+		}
+		slDB.Items[0].Discount = newDiscount
 	}
 
 	if err := b.storer.Create(ctx, slDB); err != nil {

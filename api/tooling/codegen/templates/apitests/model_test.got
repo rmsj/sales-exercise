@@ -3,8 +3,8 @@ package {{.DomainLower}}api_test
 import (
 	"time"
 
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
 )
 
 func toApp{{.DomainUpper}}(bus {{.DomainLower}}bus.{{.DomainUpper}}) {{.DomainLower}}app.{{.DomainUpper}} {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rmsj/sales/api/sdk/http/apitest"
-	"github.com/rmsj/sales/app/sdk/errs"
+	"github.com/rmsj/service/api/sdk/http/apitest"
+	"github.com/rmsj/service/app/sdk/errs"
 )
 
 func delete200(sd apitest.SeedData) []apitest.Table {

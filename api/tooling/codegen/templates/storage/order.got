@@ -3,8 +3,8 @@ package {{.DomainLower}}db
 import (
 	"fmt"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/order"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/sdk/order"
 )
 
 var orderByFields = map[string]string{

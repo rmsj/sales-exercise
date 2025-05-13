@@ -12,11 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/order"
-	"github.com/rmsj/sales/business/sdk/page"
-	"github.com/rmsj/sales/business/sdk/sqldb"
-	"github.com/rmsj/sales/foundation/logger"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/sdk/order"
+	"github.com/rmsj/service/business/sdk/page"
+	"github.com/rmsj/service/business/sdk/sqldb"
+	"github.com/rmsj/service/foundation/logger"
 )
 
 // Store manages the set of APIs for {{.DomainLower}} database access.

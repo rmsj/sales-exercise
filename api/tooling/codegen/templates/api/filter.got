@@ -3,7 +3,7 @@ package {{.DomainLower}}api
 import (
 	"net/http"
 
-	"github.com/rmsj/sales/app/domain/{{.DomainLower}}app"
+	"github.com/rmsj/service/app/domain/{{.DomainLower}}app"
 )
 
 func parseQueryParams(r *http.Request) ({{.DomainLower}}app.QueryParams, error) {

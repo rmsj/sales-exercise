@@ -64,9 +64,9 @@ func (s *Store) Create(ctx context.Context, sale salebus.Sale) error {
 	for _, item := range sale.Items {
 		const qi = `
 		INSERT INTO sale_items
-			(id, sale_id, product_id, quantity, discount, amount, created_at, updated_at)
+			(sale_id, product_id, quantity, discount, amount, created_at, updated_at)
 		VALUES
-			(:id, :sale_id, :product_id, :quantity, :discount, :amount, :created_at, :updated_at)`
+			(:sale_id, :product_id, :quantity, :discount, :amount, :created_at, :updated_at)`
 
 		if err := sqldb.NamedExecContext(ctx, s.log, s.db, qi, toDBSaleItem(item)); err != nil {
 			return fmt.Errorf("namedexeccontext: %w", err)
@@ -128,7 +128,7 @@ func (s *Store) Query(ctx context.Context, filter salebus.QueryFilter, orderBy o
 		return nil, fmt.Errorf("getSaleItems: %w", err)
 	}
 
-	return toBusSales(dbSales, items), nil
+	return toBusSales(dbSales, items)
 }
 
 // Count returns the total number of sales in the DB.
@@ -174,9 +174,7 @@ func (s *Store) QueryByID(ctx context.Context, slID uuid.UUID) (salebus.Sale, er
 		return salebus.Sale{}, fmt.Errorf("getSaleItems: %w", err)
 	}
 
-	sl := toBusSale(dbsl, items)
-
-	return sl, nil
+	return toBusSale(dbsl, items)
 }
 
 // QueryByID finds the sale identified by a given ID.
@@ -188,7 +186,7 @@ func (s *Store) getSaleItems(ctx context.Context, slID []uuid.UUID) ([]dbSaleIte
 		IDS: slID,
 	}
 
-	const q = `SELECT * FROM sale_items WHERE sale_id IN = (:sale_ids)`
+	const q = `SELECT * FROM sale_items WHERE sale_id IN (:sale_ids)`
 
 	var dbItems []dbSaleItem
 	if err := sqldb.NamedQuerySliceUsingIn(ctx, s.log, s.db, q, data, &dbItems); err != nil {

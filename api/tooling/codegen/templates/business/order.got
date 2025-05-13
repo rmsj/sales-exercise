@@ -1,6 +1,6 @@
 package {{.DomainLower}}bus
 
-import "github.com/rmsj/sales/business/sdk/order"
+import "github.com/rmsj/service/business/sdk/order"
 
 // DefaultOrderBy represents the default way we sort.
 var DefaultOrderBy = order.NewBy(OrderByID, order.ASC)

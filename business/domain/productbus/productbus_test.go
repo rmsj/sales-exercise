@@ -10,13 +10,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/rmsj/service/business/domain/productbus"
-	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/sdk/dbtest"
 	"github.com/rmsj/service/business/sdk/page"
 	"github.com/rmsj/service/business/sdk/unitest"
 	"github.com/rmsj/service/business/types/money"
 	"github.com/rmsj/service/business/types/name"
-	"github.com/rmsj/service/business/types/role"
 )
 
 func Test_Product(t *testing.T) {
@@ -42,43 +40,22 @@ func Test_Product(t *testing.T) {
 func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
 	ctx := context.Background()
 
-	usrs, err := userbus.TestSeedUsers(ctx, 1, role.User, busDomain.User)
-	if err != nil {
-		return unitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
-	}
-
-	prds, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
+	prds1, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return unitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
-	}
-
-	tu1 := unitest.User{
-		User:     usrs[0],
-		Products: prds,
 	}
 
 	// -------------------------------------------------------------------------
 
-	usrs, err = userbus.TestSeedUsers(ctx, 1, role.Admin, busDomain.User)
-	if err != nil {
-		return unitest.SeedData{}, fmt.Errorf("seeding users : %w", err)
-	}
-
-	prds, err = productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
+	prds2, err := productbus.TestGenerateSeedProducts(ctx, 2, busDomain.Product)
 	if err != nil {
 		return unitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
-	}
-
-	tu2 := unitest.User{
-		User:     usrs[0],
-		Products: prds,
 	}
 
 	// -------------------------------------------------------------------------
 
 	sd := unitest.SeedData{
-		Admins: []unitest.User{tu2},
-		Users:  []unitest.User{tu1},
+		Products: append(prds1, prds2...),
 	}
 
 	return sd, nil
@@ -87,9 +64,8 @@ func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
 // =============================================================================
 
 func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
-	prds := make([]productbus.Product, 0, len(sd.Admins[0].Products)+len(sd.Users[0].Products))
-	prds = append(prds, sd.Admins[0].Products...)
-	prds = append(prds, sd.Users[0].Products...)
+	prds := make([]productbus.Product, 0, len(sd.Products))
+	prds = append(prds, sd.Products...)
 
 	sort.Slice(prds, func(i, j int) bool {
 		return prds[i].ID.String() <= prds[j].ID.String()
@@ -134,9 +110,9 @@ func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 		},
 		{
 			Name:    "byid",
-			ExpResp: sd.Users[0].Products[0],
+			ExpResp: sd.Products[0],
 			ExcFunc: func(ctx context.Context) any {
-				resp, err := busDomain.Product.QueryByID(ctx, sd.Users[0].Products[0].ID)
+				resp, err := busDomain.Product.QueryByID(ctx, sd.Products[0].ID)
 				if err != nil {
 					return err
 				}
@@ -213,11 +189,11 @@ func update(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 		{
 			Name: "basic",
 			ExpResp: productbus.Product{
-				ID:          sd.Users[0].Products[0].ID,
+				ID:          sd.Products[0].ID,
 				Name:        name.MustParse("Guitar"),
 				Price:       money.MustParse(10.34),
-				DateCreated: sd.Users[0].Products[0].DateCreated,
-				DateUpdated: sd.Users[0].Products[0].DateCreated,
+				DateCreated: sd.Products[0].DateCreated,
+				DateUpdated: sd.Products[0].DateCreated,
 			},
 			ExcFunc: func(ctx context.Context) any {
 				up := productbus.UpdateProduct{
@@ -225,7 +201,7 @@ func update(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 					Price: dbtest.MoneyPointer(10.34),
 				}
 
-				resp, err := busDomain.Product.Update(ctx, sd.Users[0].Products[0], up)
+				resp, err := busDomain.Product.Update(ctx, sd.Products[0], up)
 				if err != nil {
 					return err
 				}
@@ -256,7 +232,7 @@ func delete(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 			Name:    "user",
 			ExpResp: nil,
 			ExcFunc: func(ctx context.Context) any {
-				if err := busDomain.Product.Delete(ctx, sd.Users[0].Products[1]); err != nil {
+				if err := busDomain.Product.Delete(ctx, sd.Products[1]); err != nil {
 					return err
 				}
 
@@ -270,7 +246,7 @@ func delete(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 			Name:    "admin",
 			ExpResp: nil,
 			ExcFunc: func(ctx context.Context) any {
-				if err := busDomain.Product.Delete(ctx, sd.Admins[0].Products[1]); err != nil {
+				if err := busDomain.Product.Delete(ctx, sd.Products[1]); err != nil {
 					return err
 				}
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
 )
 
 func (s *Store) applyFilter(filter {{.DomainLower}}bus.QueryFilter, data map[string]any, buf *bytes.Buffer) {

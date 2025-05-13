@@ -5,23 +5,25 @@ import (
 
 	"github.com/rmsj/service/business/domain/authbus"
 	"github.com/rmsj/service/business/domain/productbus"
+	"github.com/rmsj/service/business/domain/salebus"
 	"github.com/rmsj/service/business/domain/userbus"
 )
 
 // User represents an app user specified for the test.
 type User struct {
 	userbus.User
-	Products []productbus.Product
 }
 
 // SeedData represents data that was seeded for the test.
 type SeedData struct {
 	Users           []User
 	Admins          []User
+	Products        []productbus.Product
+	Sales           []salebus.Sale
 	PassResetTokens []authbus.PasswordResetToken
 }
 
-// Table represent fields needed for running an unit test.
+// Table represents fields needed for running an unit test.
 type Table struct {
 	Name    string
 	ExpResp any

@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/rmsj/sales/app/sdk/errs"
-	"github.com/rmsj/sales/app/sdk/mid"
-	"github.com/rmsj/sales/app/sdk/query"
-	"github.com/rmsj/sales/business/domain/{{.DomainLower}}bus"
-	"github.com/rmsj/sales/business/sdk/order"
-	"github.com/rmsj/sales/business/sdk/page"
+	"github.com/rmsj/service/app/sdk/errs"
+	"github.com/rmsj/service/app/sdk/mid"
+	"github.com/rmsj/service/app/sdk/query"
+	"github.com/rmsj/service/business/domain/{{.DomainLower}}bus"
+	"github.com/rmsj/service/business/sdk/order"
+	"github.com/rmsj/service/business/sdk/page"
 )
 
 type App struct {
