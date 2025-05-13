@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
-	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
-	"github.com/homeguardian-ai/hg-engine/foundation/web"
+	"github.com/homeguardian-ai/sales/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/sales/app/sdk/errs"
+	"github.com/homeguardian-ai/sales/foundation/web"
 )
 
 type api struct {

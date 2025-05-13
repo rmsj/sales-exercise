@@ -1,7 +1,7 @@
 package {{.DomainLower}}db
 
 import (
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
 )
 
 // readCache performs a safe search in the cache for the specified key.

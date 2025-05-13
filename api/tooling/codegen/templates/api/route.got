@@ -5,13 +5,13 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/homeguardian-ai/hg-engine/app/sdk/mid"
-	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
-	"github.com/homeguardian-ai/hg-engine/app/sdk/authclient"
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/sqldb"
-	"github.com/homeguardian-ai/hg-engine/foundation/logger"
-	"github.com/homeguardian-ai/hg-engine/foundation/web"
+	"github.com/homeguardian-ai/sales/app/sdk/mid"
+	"github.com/homeguardian-ai/sales/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/sales/app/sdk/authclient"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/sdk/sqldb"
+	"github.com/homeguardian-ai/sales/foundation/logger"
+	"github.com/homeguardian-ai/sales/foundation/web"
 )
 
 // Config contains all the mandatory systems required by handlers.

@@ -6,7 +6,7 @@ services:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=root_password
-      - MYSQL_DATABASE=engine
+      - MYSQL_DATABASE=sales
       - MYSQL_USER=db_user
       - MYSQL_PASSWORD=db_password
     volumes:
@@ -31,7 +31,7 @@ services:
     environment:
       - SALE_DB_USER=root
       - SALE_DB_PASSWORD=root_password
-      - SALE_DB_NAME=engine
+      - SALE_DB_NAME=sales
       - SALE_DB_HOST=database
       - SALE_DB_DISABLE_TLS=true
     networks:
@@ -69,6 +69,7 @@ services:
       - database
 
   sales:
+    env_file: "./.env"
     image: localhost/rmsj/sales:${TAG}
     pull_policy: never
     container_name: sales

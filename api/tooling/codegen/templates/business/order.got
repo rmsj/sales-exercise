@@ -1,6 +1,6 @@
 package {{.DomainLower}}bus
 
-import "github.com/homeguardian-ai/hg-engine/business/sdk/order"
+import "github.com/homeguardian-ai/sales/business/sdk/order"
 
 // DefaultOrderBy represents the default way we sort.
 var DefaultOrderBy = order.NewBy(OrderByID, order.ASC)

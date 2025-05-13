@@ -3,8 +3,8 @@ package {{.DomainLower}}api_test
 import (
 	"time"
 
-	"github.com/homeguardian-ai/hg-engine/app/domain/{{.DomainLower}}app"
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/app/domain/{{.DomainLower}}app"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
 )
 
 func toApp{{.DomainUpper}}(bus {{.DomainLower}}bus.{{.DomainUpper}}) {{.DomainLower}}app.{{.DomainUpper}} {

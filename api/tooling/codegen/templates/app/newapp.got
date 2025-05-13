@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
-	"github.com/homeguardian-ai/hg-engine/app/sdk/mid"
-	"github.com/homeguardian-ai/hg-engine/app/sdk/query"
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/order"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/page"
+	"github.com/homeguardian-ai/sales/app/sdk/errs"
+	"github.com/homeguardian-ai/sales/app/sdk/mid"
+	"github.com/homeguardian-ai/sales/app/sdk/query"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/sdk/order"
+	"github.com/homeguardian-ai/sales/business/sdk/page"
 )
 
 type App struct {

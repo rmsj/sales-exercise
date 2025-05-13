@@ -3,7 +3,7 @@ package {{.DomainLower}}api_test
 import (
 	"testing"
 
-	"github.com/homeguardian-ai/hg-engine/api/sdk/http/apitest"
+	"github.com/homeguardian-ai/sales/api/sdk/http/apitest"
 )
 
 func Test_{{.DomainUpper}}(t *testing.T) {

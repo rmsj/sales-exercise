@@ -3,8 +3,8 @@ package {{.DomainLower}}db
 import (
 	"fmt"
 
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/order"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/sdk/order"
 )
 
 var orderByFields = map[string]string{

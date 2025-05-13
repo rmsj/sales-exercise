@@ -124,7 +124,7 @@ func addAPILayer(domain string) error {
 }
 
 func addAPITestLayer(domain string) error {
-	const basePath = "api/services/engine/tests"
+	const basePath = "api/services/sales/tests"
 
 	app, err := fs.Sub(templates, "templates/apitests")
 	if err != nil {
@@ -307,7 +307,7 @@ func writeFile(basePath string, domain string, fileName string, b bytes.Buffer) 
 	switch {
 	case basePath == "api/domain/http":
 		path = fmt.Sprintf("%s/%sapi", basePath, domain)
-	case basePath == "api/services/engine/tests":
+	case basePath == "api/services/sales/tests":
 		path = fmt.Sprintf("%s/%sapi", basePath, domain)
 	case basePath == "app/domain":
 		path = fmt.Sprintf("%s/%sapp", basePath, domain)

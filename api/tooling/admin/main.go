@@ -23,7 +23,7 @@ type config struct {
 	DB   struct {
 		User         string `conf:"default:db_user"`
 		Password     string `conf:"default:db_password,mask"`
-		Host         string `conf:"default:database-service"`
+		Host         string `conf:"default:database"`
 		Name         string `conf:"default:sales"`
 		MaxIdleConns int    `conf:"default:0"`
 		MaxOpenConns int    `conf:"default:0"`

@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/page"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/sdk/page"
 
-	"github.com/homeguardian-ai/hg-engine/business/sdk/dbtest"
-	"github.com/homeguardian-ai/hg-engine/business/sdk/unitest"
+	"github.com/homeguardian-ai/sales/business/sdk/dbtest"
+	"github.com/homeguardian-ai/sales/business/sdk/unitest"
 )
 
 func Test_{{.DomainUpper}}(t *testing.T) {

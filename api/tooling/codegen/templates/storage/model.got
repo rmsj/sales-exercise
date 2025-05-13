@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
 )
 
 type db{{.DomainUpper}} struct {

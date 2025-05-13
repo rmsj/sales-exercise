@@ -3,8 +3,8 @@ package {{.DomainLower}}app
 import (
 	"github.com/google/uuid"
 
-	"github.com/homeguardian-ai/hg-engine/app/sdk/errs"
-	"github.com/homeguardian-ai/hg-engine/business/domain/{{.DomainLower}}bus"
+	"github.com/homeguardian-ai/sales/app/sdk/errs"
+	"github.com/homeguardian-ai/sales/business/domain/{{.DomainLower}}bus"
 )
 
 func parseFilter(qp QueryParams) ({{.DomainLower}}bus.QueryFilter, error) {
