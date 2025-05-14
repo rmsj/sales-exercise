@@ -88,7 +88,7 @@ type NewSale struct {
 
 type NewSaleItem struct {
 	ProductID string `json:"productId" validate:"required"`
-	Quantity  int    `json:"quantity" validate:"required,gte=0,lte=100"`
+	Quantity  int    `json:"quantity" validate:"required,gte=1,lte=100"`
 }
 
 func toBusNewSale(userID uuid.UUID, app NewSale, productsInSale []productbus.Product) (salebus.NewSale, error) {

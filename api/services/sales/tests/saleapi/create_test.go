@@ -88,6 +88,56 @@ func create400(sd apitest.SeedData) []apitest.Table {
 				return cmp.Diff(got, exp)
 			},
 		},
+		{
+			Name:       "invalid-input-negative-discount",
+			URL:        "/v1/sales",
+			Token:      sd.Users[0].Token,
+			Method:     http.MethodPost,
+			StatusCode: http.StatusBadRequest,
+			Input: &saleapp.NewSale{
+				Discount: -10,
+				Items: []saleapp.NewSaleItem{
+					{
+						ProductID: sd.Products[0].ID.String(),
+						Quantity:  1,
+					},
+					{
+						ProductID: sd.Products[1].ID.String(),
+						Quantity:  2,
+					},
+				},
+			},
+			GotResp: &errs.Error{},
+			ExpResp: errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"discount\",\"error\":\"discount must be 0 or greater\"}]"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
+		{
+			Name:       "invalid-input-negative-discount",
+			URL:        "/v1/sales",
+			Token:      sd.Users[0].Token,
+			Method:     http.MethodPost,
+			StatusCode: http.StatusBadRequest,
+			Input: &saleapp.NewSale{
+				Discount: 1000001,
+				Items: []saleapp.NewSaleItem{
+					{
+						ProductID: sd.Products[0].ID.String(),
+						Quantity:  1,
+					},
+					{
+						ProductID: sd.Products[1].ID.String(),
+						Quantity:  2,
+					},
+				},
+			},
+			GotResp: &errs.Error{},
+			ExpResp: errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"discount\",\"error\":\"discount must be 1,000,000 or less\"}]"),
+			CmpFunc: func(got any, exp any) string {
+				return cmp.Diff(got, exp)
+			},
+		},
 	}
 
 	return table
