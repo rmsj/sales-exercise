@@ -87,7 +87,7 @@ type NewSale struct {
 }
 
 type NewSaleItem struct {
-	ProductID string `json:"productId" validate:"required"`
+	ProductID string `json:"product_id" validate:"required"`
 	Quantity  int    `json:"quantity" validate:"required,gte=1,lte=100"`
 }
 

@@ -93,7 +93,7 @@ func (b *Business) Create(ctx context.Context, ns NewSale) (Sale, error) {
 	}
 
 	if ns.Discount.Value() > slDB.Amount.Value() {
-		return Sale{}, fmt.Errorf("discount[%f] is greater than total sale amount[%f]", ns.Discount, slDB.Amount)
+		return Sale{}, fmt.Errorf("discount[%.2f] is greater than total sale amount[%.2f]", ns.Discount, slDB.Amount)
 	}
 
 	itemsValues, err := SaleItemsValues(saleAmount, ns.Discount.Value(), ns.Items)

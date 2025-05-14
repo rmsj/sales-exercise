@@ -100,7 +100,7 @@ func (a *app) create(ctx context.Context, r *http.Request) web.Encoder {
 
 	sl, err := a.saleBus.Create(ctx, newSaleBus)
 	if err != nil {
-		return errs.Newf(errs.Internal, "error creating sale[%+v]: %s", sl, err)
+		return errs.Newf(errs.Internal, "error creating sale: %s", err)
 	}
 
 	result, err := ToAppSale(sl, user, products)
