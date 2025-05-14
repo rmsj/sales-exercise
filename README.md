@@ -25,6 +25,12 @@ $ git clone https://github.com/rmsj/sales-exercise or git@github.com:rmsj/sales-
 $ cd sales-exerciset
 ```
 
+From the root of the project run:
+```
+cp ./zarf/compose/.env.example ./zarf/compose/.env
+```
+This will copy the file `/zarf/compose/.env.example` to `/zarf/compose/.env`.
+
 ## Running The Project
 
 To run the project use the following commands.
@@ -49,3 +55,9 @@ $ make compose-logs
 # Shut Project
 $ make compose-down
 ```
+
+## Testing The Project
+
+Import the Postman collection file `sales.postman_collection.json` in the root of the project into Postman.
+
+You need to run the `login` request first - this will log you to be able to create products, sales, etc.
