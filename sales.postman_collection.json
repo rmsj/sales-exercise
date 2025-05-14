@@ -60,7 +60,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Pixel 10\",\n    \"price\": 1999.99\n}",
+					"raw": "{\n    \"name\": \"Pixel 9\",\n    \"price\": 1999.99\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -85,11 +85,21 @@
 		{
 			"name": "Create Sale",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"discount\": 10000,\n    \"items\": [\n        {\n            \"product_id\": \"08b97249-73c6-4471-8981-33d290d208e2\",\n            \"quantity\": 1\n        },\n        {\n            \"product_id\": \"46a56eb8-8353-483e-944c-2e78c821e614\",\n            \"quantity\": 1\n        }\n    ]\n}",
+					"raw": "{\n    \"discount\": 1000,\n    \"items\": [\n        {\n            \"product_id\": \"566ef74d-f43b-44da-9c0a-a588177372d2\",\n            \"quantity\": 1\n        },\n        {\n            \"product_id\": \"5a71e233-3ca2-4468-b6c4-644fd99df55c\",\n            \"quantity\": 1\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -97,12 +107,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:6000/v1/sales",
+					"raw": "http://localhost:3000/v1/sales",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "6000",
+					"port": "3000",
 					"path": [
 						"v1",
 						"sales"
