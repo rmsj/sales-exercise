@@ -15,27 +15,29 @@ import (
 )
 
 type Customer struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type Item struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	UnityPrice float64   `json:"unity_price"`
-	Quantity   int       `json:"quantity"`
-	Amount     float64   `json:"amount"`
-	Discount   float64   `json:"discount"`
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	UnityPrice float64 `json:"unity_price"`
+	Quantity   int     `json:"quantity"`
+	Amount     float64 `json:"amount"`
+	Discount   float64 `json:"discount"`
 }
 
 // Sale represents information about an individual sale.
 type Sale struct {
-	ID        uuid.UUID `json:"id"`
-	Customer  Customer  `json:"customer"`
-	Items     []Item    `json:"items"`
-	UpdatedAt string    `json:"updatedAt"`
-	CreatedAt string    `json:"createdAt"`
+	ID        string   `json:"id"`
+	Discount  float64  `json:"discount"`
+	Amount    float64  `json:"amount"`
+	Customer  Customer `json:"customer"`
+	Items     []Item   `json:"items"`
+	UpdatedAt string   `json:"updatedAt"`
+	CreatedAt string   `json:"createdAt"`
 }
 
 // Encode implements the encoder interface.
@@ -44,11 +46,13 @@ func (app Sale) Encode() ([]byte, string, error) {
 	return data, "application/json", err
 }
 
-func toAppSale(bus salebus.Sale, user userbus.User, productsInSale []productbus.Product) (Sale, error) {
+func ToAppSale(bus salebus.Sale, user userbus.User, productsInSale []productbus.Product) (Sale, error) {
 	saleApp := Sale{
-		ID: bus.ID,
+		ID:       bus.ID.String(),
+		Discount: bus.Discount.Value(),
+		Amount:   bus.Amount.Value(),
 		Customer: Customer{
-			ID:    bus.UserID,
+			ID:    bus.UserID.String(),
 			Name:  user.Name.String(),
 			Email: user.Email.Address,
 		},
@@ -64,7 +68,7 @@ func toAppSale(bus salebus.Sale, user userbus.User, productsInSale []productbus.
 			}
 		}
 		saleApp.Items = append(saleApp.Items, Item{
-			ID:         item.ProductID,
+			ID:         item.ProductID.String(),
 			Name:       product.Name.String(),
 			UnityPrice: item.UnityPrice.Value(),
 			Quantity:   item.Quantity,

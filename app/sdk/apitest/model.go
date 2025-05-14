@@ -2,20 +2,22 @@ package apitest
 
 import (
 	"github.com/rmsj/service/business/domain/productbus"
+	"github.com/rmsj/service/business/domain/salebus"
 	"github.com/rmsj/service/business/domain/userbus"
 )
 
 // User extends the dbtest user for api test support.
 type User struct {
 	userbus.User
-	Products []productbus.Product
-	Token    string
+	Token string
 }
 
 // SeedData represents users for api tests.
 type SeedData struct {
-	Users  []User
-	Admins []User
+	Users    []User
+	Admins   []User
+	Products []productbus.Product
+	Sales    []salebus.Sale
 }
 
 // Table represent fields needed for running an api test.

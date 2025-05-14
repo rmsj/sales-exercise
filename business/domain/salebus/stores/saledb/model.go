@@ -74,6 +74,7 @@ func toBusSale(db dbSale, items []dbSaleItem) (salebus.Sale, error) {
 			saleItems = append(saleItems, item)
 		}
 	}
+
 	sl.Items, err = toBusSaleItems(saleItems)
 	if err != nil {
 		return salebus.Sale{}, fmt.Errorf("parse items: %w", err)

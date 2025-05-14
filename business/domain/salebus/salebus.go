@@ -191,7 +191,10 @@ func SaleItemsValues(saleAmount float64, saleDiscount float64, items []NewSaleIt
 	for _, item := range items {
 		itemAmount := float64(item.Quantity) * item.Price.Value()
 		proportion := itemAmount / saleAmount
-		itemDiscount := roundToTwoDecimals(proportion * saleDiscount)
+		itemDiscount := float64(0)
+		if saleDiscount > 0 {
+			itemDiscount = roundToTwoDecimals(proportion * saleDiscount)
+		}
 
 		itemDiscountMoney, err := money.Parse(itemDiscount)
 		if err != nil {
@@ -215,7 +218,7 @@ func SaleItemsValues(saleAmount float64, saleDiscount float64, items []NewSaleIt
 		if !ok {
 			return nil, fmt.Errorf("error calculating item values for item: %s", items[0].ProductID)
 		}
-		newDiscount, err := money.Parse(itemValue.Discount.Value() + (saleDiscount - distributedDiscount))
+		newDiscount, err := money.Parse(roundToTwoDecimals(itemValue.Discount.Value() + (saleDiscount - distributedDiscount)))
 		if err != nil {
 			return nil, fmt.Errorf("error parsing item discount for sale: %w", err)
 		}

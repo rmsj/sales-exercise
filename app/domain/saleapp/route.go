@@ -34,7 +34,7 @@ func Routes(app *web.App, cfg Config) {
 
 	api := newApp(cfg.UserBus, cfg.ProductBus, cfg.SaleBus)
 	app.HandlerFunc(http.MethodGet, version, "/sales", api.query, authenticate)
-	app.HandlerFunc(http.MethodGet, version, "/sales/{ sale_id}", api.queryByID, authenticate)
+	app.HandlerFunc(http.MethodGet, version, "/sales/{sale_id}", api.queryByID, authenticate)
 	app.HandlerFunc(http.MethodPost, version, "/sales", api.create, authenticate, transaction)
 	app.HandlerFunc(http.MethodDelete, version, "/sales/{sale_id}", api.delete, authenticate, transaction)
 }

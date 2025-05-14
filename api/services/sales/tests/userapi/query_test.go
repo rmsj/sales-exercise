@@ -31,7 +31,7 @@ func query200(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "basic",
-			URL:        "/v1/users?page=1&rows=10&orderBy=user_id,ASC&name=Name",
+			URL:        "/v1/users?page=1&rows=10&order_by=user_id,ASC&name=Name",
 			Token:      sd.Admins[0].Token,
 			StatusCode: http.StatusOK,
 			Method:     http.MethodGet,
@@ -67,7 +67,7 @@ func query400(sd apitest.SeedData) []apitest.Table {
 		},
 		{
 			Name:       "bad-orderby-value",
-			URL:        "/v1/users?page=1&rows=10&orderBy=ser_id,ASC",
+			URL:        "/v1/users?page=1&rows=10&order_by=ser_id,ASC",
 			Token:      sd.Admins[0].Token,
 			StatusCode: http.StatusBadRequest,
 			Method:     http.MethodGet,

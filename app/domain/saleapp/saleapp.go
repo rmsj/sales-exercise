@@ -38,6 +38,7 @@ func newApp(user *userbus.Business, product *productbus.Business, sale *salebus.
 // using a store transaction that was created via middleware.
 func (a *app) newWithTx(ctx context.Context) (*app, error) {
 	tx, err := mid.GetTran(ctx)
+
 	if err != nil {
 		return nil, err
 	}
@@ -77,19 +78,13 @@ func (a *app) create(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.Newf(errs.Internal, "error while creating sales")
 	}
 
-	user, err := mid.GetUser(ctx)
+	userID, err := mid.GetUserID(ctx)
 	if err != nil {
 		return errs.Newf(errs.Internal, "user missing in context: %s", err)
 	}
-
-	// loop through items to get ids
-	var pIDs []uuid.UUID
-	for _, item := range app.Items {
-		id, err := uuid.Parse(item.ProductID)
-		if err != nil {
-			return errs.Newf(errs.InvalidArgument, "invalid product id: %s", item.ProductID)
-		}
-		pIDs = append(pIDs, id)
+	user, err := a.userBus.QueryByID(ctx, userID)
+	if err != nil {
+		return errs.Newf(errs.Internal, "invalid user for sale: %s", err)
 	}
 
 	// validate products and get them if all good
@@ -108,7 +103,7 @@ func (a *app) create(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.Newf(errs.Internal, "error creating sale[%+v]: %s", sl, err)
 	}
 
-	result, err := toAppSale(sl, user, products)
+	result, err := ToAppSale(sl, user, products)
 	if err != nil {
 		return errs.Newf(errs.Internal, "error parsing sale after creation - sale id[%s]: %s", sl.ID, err)
 	}
@@ -151,7 +146,7 @@ func (a *app) query(ctx context.Context, r *http.Request) web.Encoder {
 		return err.(*errs.Error)
 	}
 
-	orderBy, err := order.Parse(orderByFields, qp.OrderBy, productbus.DefaultOrderBy)
+	orderBy, err := order.Parse(orderByFields, qp.OrderBy, salebus.DefaultOrderBy)
 	if err != nil {
 		return errs.NewFieldErrors("order", err)
 	}
@@ -184,7 +179,7 @@ func (a *app) query(ctx context.Context, r *http.Request) web.Encoder {
 		if err != nil {
 			return errs.Newf(errs.Internal, "error getting products for sale: %s", err)
 		}
-		sale, err := toAppSale(sl, saleUser, products)
+		sale, err := ToAppSale(sl, saleUser, products)
 		if err != nil {
 			return errs.Newf(errs.Internal, "error parsing sale sale - sale id[%s]: %s", sl.ID, err)
 		}
@@ -205,9 +200,9 @@ func (a *app) queryByID(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.Newf(errs.Internal, "querybyid: %s", err)
 	}
 
-	user, err := mid.GetUser(ctx)
+	user, err := a.userBus.QueryByID(ctx, sl.UserID)
 	if err != nil {
-		return errs.Newf(errs.Internal, "user missing in context: %s", err)
+		return errs.Newf(errs.Internal, "invalid user for sale: %s - %v", sl.UserID, err)
 	}
 
 	var pIDs []uuid.UUID
@@ -221,7 +216,7 @@ func (a *app) queryByID(ctx context.Context, r *http.Request) web.Encoder {
 		return errs.Newf(errs.Internal, "error getting products for sale: %s", err)
 	}
 
-	sale, err := toAppSale(sl, user, products)
+	sale, err := ToAppSale(sl, user, products)
 	if err != nil {
 		return errs.Newf(errs.Internal, "error sale - sale id[%s]: %s", sl.ID, err)
 	}

@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/rmsj/service/app/domain/productapp"
 	"github.com/rmsj/service/app/sdk/apitest"
 	"github.com/rmsj/service/app/sdk/errs"
@@ -14,9 +15,8 @@ import (
 )
 
 func query200(sd apitest.SeedData) []apitest.Table {
-	prds := make([]productbus.Product, 0, len(sd.Admins[0].Products)+len(sd.Users[0].Products))
-	prds = append(prds, sd.Admins[0].Products...)
-	prds = append(prds, sd.Users[0].Products...)
+	prds := make([]productbus.Product, 0, len(sd.Products))
+	prds = append(prds, sd.Products...)
 
 	sort.Slice(prds, func(i, j int) bool {
 		return prds[i].ID.String() <= prds[j].ID.String()
@@ -25,7 +25,7 @@ func query200(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "basic",
-			URL:        "/v1/products?page=1&rows=10&orderBy=product_id,ASC",
+			URL:        "/v1/products?page=1&rows=10&order_by=product_id,ASC",
 			Token:      sd.Admins[0].Token,
 			StatusCode: http.StatusOK,
 			Method:     http.MethodGet,
@@ -61,7 +61,7 @@ func query400(sd apitest.SeedData) []apitest.Table {
 		},
 		{
 			Name:       "bad-orderby-value",
-			URL:        "/v1/products?page=1&rows=10&orderBy=roduct_id,ASC",
+			URL:        "/v1/products?page=1&rows=10&order_by=roduct_id,ASC",
 			Token:      sd.Admins[0].Token,
 			StatusCode: http.StatusBadRequest,
 			Method:     http.MethodGet,
@@ -80,12 +80,12 @@ func queryByID200(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "basic",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Users[0].Products[0].ID),
+			URL:        fmt.Sprintf("/v1/products/%s", sd.Products[0].ID),
 			Token:      sd.Users[0].Token,
 			StatusCode: http.StatusOK,
 			Method:     http.MethodGet,
 			GotResp:    &productapp.Product{},
-			ExpResp:    toAppProductPtr(sd.Users[0].Products[0]),
+			ExpResp:    toAppProductPtr(sd.Products[0]),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},

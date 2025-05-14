@@ -14,6 +14,7 @@ import (
 	"github.com/rmsj/service/app/sdk/mid"
 	"github.com/rmsj/service/business/domain/authbus"
 	"github.com/rmsj/service/business/domain/productbus"
+	"github.com/rmsj/service/business/domain/salebus"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/foundation/logger"
 	"github.com/rmsj/service/foundation/web"
@@ -66,6 +67,7 @@ type BusConfig struct {
 	UserBus    *userbus.Business
 	AuthBus    *authbus.Business
 	ProductBus *productbus.Business
+	SaleBus    *salebus.Business
 }
 
 // Config contains all the mandatory systems required by handlers.

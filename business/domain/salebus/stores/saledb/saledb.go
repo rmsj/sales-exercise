@@ -186,7 +186,7 @@ func (s *Store) getSaleItems(ctx context.Context, slID []uuid.UUID) ([]dbSaleIte
 		IDS: slID,
 	}
 
-	const q = `SELECT * FROM sale_items WHERE sale_id IN (:sale_ids)`
+	const q = `SELECT * FROM sale_items WHERE sale_id IN (:sale_ids) ORDER BY sale_id, product_id ASC`
 
 	var dbItems []dbSaleItem
 	if err := sqldb.NamedQuerySliceUsingIn(ctx, s.log, s.db, q, data, &dbItems); err != nil {

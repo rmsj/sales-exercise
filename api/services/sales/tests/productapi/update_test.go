@@ -17,7 +17,7 @@ func update200(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "basic",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Users[0].Products[0].ID),
+			URL:        fmt.Sprintf("/v1/products/%s", sd.Products[0].ID),
 			Token:      sd.Users[0].Token,
 			Method:     http.MethodPut,
 			StatusCode: http.StatusOK,
@@ -27,11 +27,11 @@ func update200(sd apitest.SeedData) []apitest.Table {
 			},
 			GotResp: &productapp.Product{},
 			ExpResp: &productapp.Product{
-				ID:          sd.Users[0].Products[0].ID.String(),
+				ID:          sd.Products[0].ID.String(),
 				Name:        "Guitar",
 				Price:       10.34,
-				DateCreated: sd.Users[0].Products[0].DateCreated.Format(time.RFC3339),
-				DateUpdated: sd.Users[0].Products[0].DateCreated.Format(time.RFC3339),
+				DateCreated: sd.Products[0].DateCreated.Format(time.RFC3339),
+				DateUpdated: sd.Products[0].DateCreated.Format(time.RFC3339),
 			},
 			CmpFunc: func(got any, exp any) string {
 				gotResp, exists := got.(*productapp.Product)
@@ -54,7 +54,7 @@ func update400(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "bad-input",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Users[0].Products[0].ID),
+			URL:        fmt.Sprintf("/v1/products/%s", sd.Products[0].ID),
 			Token:      sd.Users[0].Token,
 			Method:     http.MethodPut,
 			StatusCode: http.StatusBadRequest,
@@ -76,19 +76,19 @@ func update401(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "emptytoken",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Users[0].Products[0].ID),
+			URL:        fmt.Sprintf("/v1/products/%s", sd.Products[0].ID),
 			Token:      "&nbsp;",
 			Method:     http.MethodPut,
 			StatusCode: http.StatusUnauthorized,
 			GotResp:    &errs.Error{},
-			ExpResp:    errs.Newf(errs.Unauthenticated, "error parsing token: token contains an invalid number of segments"),
+			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed: token contains an invalid number of segments"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},
 		},
 		{
 			Name:       "badsig",
-			URL:        fmt.Sprintf("/v1/products/%s", sd.Users[0].Products[0].ID),
+			URL:        fmt.Sprintf("/v1/products/%s", sd.Products[0].ID),
 			Token:      sd.Users[0].Token + "A",
 			Method:     http.MethodPut,
 			StatusCode: http.StatusUnauthorized,

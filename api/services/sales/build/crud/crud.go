@@ -34,8 +34,10 @@ func (add) Add(app *web.App, cfg mux.Config) {
 
 	saleapp.Routes(app, saleapp.Config{
 		Log:        cfg.Log,
+		DB:         cfg.DB,
 		UserBus:    cfg.BusConfig.UserBus,
 		ProductBus: cfg.BusConfig.ProductBus,
+		SaleBus:    cfg.BusConfig.SaleBus,
 		AuthClient: cfg.SalesConfig.AuthClient,
 	})
 

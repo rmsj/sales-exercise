@@ -29,7 +29,7 @@ func parseQueryParams(r *http.Request) (queryParams, error) {
 	filter := queryParams{
 		Page:             values.Get("page"),
 		Rows:             values.Get("rows"),
-		OrderBy:          values.Get("orderBy"),
+		OrderBy:          values.Get("order_by"),
 		ID:               values.Get("user_id"),
 		Name:             values.Get("name"),
 		Email:            values.Get("email"),

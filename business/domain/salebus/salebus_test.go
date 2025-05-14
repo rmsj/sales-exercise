@@ -51,6 +51,9 @@ func insertSeedData(busDomain dbtest.BusDomain) (unitest.SeedData, error) {
 	if err != nil {
 		return unitest.SeedData{}, fmt.Errorf("seeding products : %w", err)
 	}
+	sort.Slice(prds, func(i, j int) bool {
+		return prds[i].ID.String() < prds[j].ID.String()
+	})
 
 	var items []salebus.NewSaleItem
 	for _, prd := range prds {

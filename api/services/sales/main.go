@@ -19,8 +19,12 @@ import (
 	"github.com/rmsj/service/app/sdk/authclient"
 	"github.com/rmsj/service/app/sdk/debug"
 	"github.com/rmsj/service/app/sdk/mux"
+	"github.com/rmsj/service/business/domain/authbus"
+	"github.com/rmsj/service/business/domain/authbus/stores/authdb"
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/domain/productbus/stores/productdb"
+	"github.com/rmsj/service/business/domain/salebus"
+	"github.com/rmsj/service/business/domain/salebus/stores/saledb"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/domain/userbus/stores/userdb"
 	"github.com/rmsj/service/business/sdk/delegate"
@@ -161,8 +165,10 @@ func run(ctx context.Context, log *logger.Logger) error {
 	userStorage := userdb.NewStore(log, db, time.Minute)
 
 	dlg := delegate.New(log)
+	authBus := authbus.NewBusiness(log, authdb.NewStore(log, db))
 	userBus := userbus.NewBusiness(log, dlg, userStorage)
 	productBus := productbus.NewBusiness(log, dlg, productdb.NewStore(log, db))
+	saleBus := salebus.NewBusiness(log, saledb.NewStore(log, db))
 
 	// -------------------------------------------------------------------------
 	// Initialize authentication support
@@ -218,8 +224,10 @@ func run(ctx context.Context, log *logger.Logger) error {
 		DB:     db,
 		Tracer: tracer,
 		BusConfig: mux.BusConfig{
+			AuthBus:    authBus,
 			UserBus:    userBus,
 			ProductBus: productBus,
+			SaleBus:    saleBus,
 		},
 		SalesConfig: mux.SalesConfig{
 			AuthClient: authClient,

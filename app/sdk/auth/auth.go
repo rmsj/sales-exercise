@@ -128,7 +128,7 @@ func (a *Auth) Authenticate(ctx context.Context, bearerToken string) (Claims, er
 	var claims Claims
 	token, _, err := a.parser.ParseUnverified(jwt, &claims)
 	if err != nil {
-		return Claims{}, fmt.Errorf("error parsing token: %w", err)
+		return Claims{}, fmt.Errorf("authentication failed: %w", err)
 	}
 
 	kidRaw, exists := token.Header["kid"]

@@ -1,11 +1,11 @@
-package product_test
+package saleapi_test
 
 import (
 	"net/http"
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rmsj/service/app/domain/productapp"
+	"github.com/rmsj/service/app/domain/saleapp"
 	"github.com/rmsj/service/app/sdk/apitest"
 	"github.com/rmsj/service/app/sdk/errs"
 )
@@ -14,30 +14,56 @@ func create200(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "basic",
-			URL:        "/v1/products",
+			URL:        "/v1/sales",
 			Token:      sd.Users[0].Token,
 			Method:     http.MethodPost,
 			StatusCode: http.StatusOK,
-			Input: &productapp.NewProduct{
-				Name:  "Guitar",
-				Price: 10.34,
+			Input: &saleapp.NewSale{
+				Items: []saleapp.NewSaleItem{
+					{
+						ProductID: sd.Products[0].ID.String(),
+						Quantity:  1,
+					},
+					{
+						ProductID: sd.Products[1].ID.String(),
+						Quantity:  2,
+					},
+				},
 			},
-			GotResp: &productapp.Product{},
-			ExpResp: &productapp.Product{
-				Name:  "Guitar",
-				Price: 10.34,
+			GotResp: &saleapp.Sale{},
+			ExpResp: &saleapp.Sale{
+				Amount: sd.Products[0].Price.Value() + sd.Products[1].Price.Value()*2,
+				Customer: saleapp.Customer{
+					ID:    sd.Users[0].ID.String(),
+					Name:  sd.Users[0].Name.String(),
+					Email: sd.Users[0].Email.Address,
+				},
+				Items: []saleapp.Item{
+					{
+						ID:         sd.Products[0].ID.String(),
+						Name:       sd.Products[0].Name.String(),
+						UnityPrice: sd.Products[0].Price.Value(),
+						Quantity:   1,
+						Amount:     sd.Products[0].Price.Value(),
+						Discount:   0,
+					},
+					{
+						ID:         sd.Products[1].ID.String(),
+						Name:       sd.Products[1].Name.String(),
+						UnityPrice: sd.Products[1].Price.Value(),
+						Quantity:   2,
+						Amount:     sd.Products[1].Price.Value() * 2,
+						Discount:   0,
+					},
+				},
 			},
 			CmpFunc: func(got any, exp any) string {
-				gotResp, exists := got.(*productapp.Product)
-				if !exists {
-					return "error occurred"
-				}
-
-				expResp := exp.(*productapp.Product)
+				gotResp := got.(*saleapp.Sale)
+				expResp := exp.(*saleapp.Sale)
 
 				expResp.ID = gotResp.ID
-				expResp.DateCreated = gotResp.DateCreated
-				expResp.DateUpdated = gotResp.DateUpdated
+				expResp.UpdatedAt = gotResp.UpdatedAt
+				expResp.CreatedAt = gotResp.CreatedAt
 
 				return cmp.Diff(gotResp, expResp)
 			},
@@ -51,13 +77,13 @@ func create400(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "missing-input",
-			URL:        "/v1/products",
+			URL:        "/v1/sales",
 			Token:      sd.Users[0].Token,
 			Method:     http.MethodPost,
 			StatusCode: http.StatusBadRequest,
-			Input:      &productapp.NewProduct{},
+			Input:      &saleapp.NewSale{},
 			GotResp:    &errs.Error{},
-			ExpResp:    errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"name\",\"error\":\"name is a required field\"},{\"field\":\"price\",\"error\":\"price is a required field\"}]"),
+			ExpResp:    errs.Newf(errs.InvalidArgument, "validate: [{\"field\":\"items\",\"error\":\"items is a required field\"}]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},
@@ -71,7 +97,7 @@ func create401(sd apitest.SeedData) []apitest.Table {
 	table := []apitest.Table{
 		{
 			Name:       "emptytoken",
-			URL:        "/v1/products",
+			URL:        "/v1/sales",
 			Token:      "&nbsp;",
 			Method:     http.MethodPost,
 			StatusCode: http.StatusUnauthorized,
@@ -83,8 +109,8 @@ func create401(sd apitest.SeedData) []apitest.Table {
 		},
 		{
 			Name:       "badtoken",
-			URL:        "/v1/products",
-			Token:      sd.Admins[0].Token[:10],
+			URL:        "/v1/sales",
+			Token:      sd.Users[0].Token[:10],
 			Method:     http.MethodPost,
 			StatusCode: http.StatusUnauthorized,
 			GotResp:    &errs.Error{},
@@ -95,24 +121,12 @@ func create401(sd apitest.SeedData) []apitest.Table {
 		},
 		{
 			Name:       "badsig",
-			URL:        "/v1/products",
-			Token:      sd.Admins[0].Token + "A",
+			URL:        "/v1/sales",
+			Token:      sd.Users[0].Token + "A",
 			Method:     http.MethodPost,
 			StatusCode: http.StatusUnauthorized,
 			GotResp:    &errs.Error{},
 			ExpResp:    errs.Newf(errs.Unauthenticated, "authentication failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
-			CmpFunc: func(got any, exp any) string {
-				return cmp.Diff(got, exp)
-			},
-		},
-		{
-			Name:       "wronguser",
-			URL:        "/v1/products",
-			Token:      sd.Admins[0].Token,
-			Method:     http.MethodPost,
-			StatusCode: http.StatusUnauthorized,
-			GotResp:    &errs.Error{},
-			ExpResp:    errs.Newf(errs.Unauthenticated, "authorize: you are not authorized for that action, claims[[admin]] rule[rule_user_only]: rego evaluation failed : bindings results[[{[true] map[x:false]}]] ok[true]"),
 			CmpFunc: func(got any, exp any) string {
 				return cmp.Diff(got, exp)
 			},
