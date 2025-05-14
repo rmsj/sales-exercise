@@ -64,9 +64,9 @@ func (s *Store) Create(ctx context.Context, sale salebus.Sale) error {
 	for _, item := range sale.Items {
 		const qi = `
 		INSERT INTO sale_items
-			(sale_id, product_id, quantity, discount, amount, created_at, updated_at)
+			(sale_id, product_id, quantity, unity_price, discount, amount, created_at, updated_at)
 		VALUES
-			(:sale_id, :product_id, :quantity, :discount, :amount, :created_at, :updated_at)`
+			(:sale_id, :product_id, :quantity, :unity_price, :discount, :amount, :created_at, :updated_at)`
 
 		if err := sqldb.NamedExecContext(ctx, s.log, s.db, qi, toDBSaleItem(item)); err != nil {
 			return fmt.Errorf("namedexeccontext: %w", err)
@@ -159,7 +159,7 @@ func (s *Store) QueryByID(ctx context.Context, slID uuid.UUID) (salebus.Sale, er
 		ID: slID.String(),
 	}
 
-	const q = `SELECT * FROM sales WHERE id = :id AND deleted_at IS NULL`
+	const q = `SELECT * FROM sales WHERE id = :id`
 
 	var dbsl dbSale
 	if err := sqldb.NamedQueryStruct(ctx, s.log, s.db, q, data, &dbsl); err != nil {

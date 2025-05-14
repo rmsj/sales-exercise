@@ -21,13 +21,14 @@ type dbSale struct {
 }
 
 type dbSaleItem struct {
-	SaleID    uuid.UUID       `db:"sale_id"`
-	ProductID uuid.UUID       `db:"product_id"`
-	Quantity  int             `db:"quantity"`
-	Discount  sql.NullFloat64 `db:"discount"`
-	Amount    float64         `db:"amount"`
-	UpdatedAt time.Time       `db:"updated_at"`
-	CreatedAt time.Time       `db:"created_at"`
+	SaleID     uuid.UUID       `db:"sale_id"`
+	ProductID  uuid.UUID       `db:"product_id"`
+	UnityPrice float64         `db:"unity_price"`
+	Quantity   int             `db:"quantity"`
+	Discount   sql.NullFloat64 `db:"discount"`
+	Amount     float64         `db:"amount"`
+	UpdatedAt  time.Time       `db:"updated_at"`
+	CreatedAt  time.Time       `db:"created_at"`
 }
 
 func toDBSale(bus salebus.Sale) dbSale {
@@ -98,12 +99,14 @@ func toBusSales(dbs []dbSale, dbItems []dbSaleItem) ([]salebus.Sale, error) {
 
 func toDBSaleItem(bus salebus.SaleItem) dbSaleItem {
 	saleItemDB := dbSaleItem{
-		SaleID:    bus.SaleID,
-		ProductID: bus.ProductID,
-		Discount:  sql.NullFloat64{Float64: bus.Discount.Value(), Valid: bus.Discount.Value() > 0},
-		Amount:    bus.Amount.Value(),
-		UpdatedAt: bus.UpdatedAt,
-		CreatedAt: bus.CreatedAt,
+		SaleID:     bus.SaleID,
+		ProductID:  bus.ProductID,
+		Quantity:   bus.Quantity,
+		Discount:   sql.NullFloat64{Float64: bus.Discount.Value(), Valid: bus.Discount.Value() > 0},
+		UnityPrice: bus.UnityPrice.Value(),
+		Amount:     bus.Amount.Value(),
+		UpdatedAt:  bus.UpdatedAt,
+		CreatedAt:  bus.CreatedAt,
 	}
 
 	return saleItemDB
@@ -122,13 +125,20 @@ func toBusSaleItem(db dbSaleItem) (salebus.SaleItem, error) {
 		return salebus.SaleItem{}, fmt.Errorf("parse amount: %w", err)
 	}
 
+	unityPrice, err := money.Parse(db.UnityPrice)
+	if err != nil {
+		return salebus.SaleItem{}, fmt.Errorf("parse unity price: %w", err)
+	}
+
 	slItem := salebus.SaleItem{
-		SaleID:    db.SaleID,
-		ProductID: db.ProductID,
-		Discount:  discount,
-		Amount:    amount,
-		UpdatedAt: db.UpdatedAt,
-		CreatedAt: db.CreatedAt,
+		SaleID:     db.SaleID,
+		ProductID:  db.ProductID,
+		Quantity:   db.Quantity,
+		Discount:   discount,
+		UnityPrice: unityPrice,
+		Amount:     amount,
+		UpdatedAt:  db.UpdatedAt,
+		CreatedAt:  db.CreatedAt,
 	}
 
 	return slItem, nil

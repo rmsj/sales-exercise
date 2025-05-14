@@ -72,11 +72,6 @@ func (b *Business) Create(ctx context.Context, ns NewSale) (Sale, error) {
 	ctx, span := otel.AddSpan(ctx, "business.salebus.create")
 	defer span.End()
 
-	// helper function to round the value of the discount
-	roundToTwoDecimals := func(value float64) float64 {
-		return math.Round(value*100) / 100
-	}
-
 	now := time.Now()
 
 	slDB := Sale{
@@ -101,41 +96,30 @@ func (b *Business) Create(ctx context.Context, ns NewSale) (Sale, error) {
 		return Sale{}, fmt.Errorf("discount[%f] is greater than total sale amount[%f]", ns.Discount, slDB.Amount)
 	}
 
-	// items
-	var distributedDiscount float64
-	for _, item := range ns.Items {
-		itemAmount := float64(item.Quantity) * item.Price.Value()
-		proportion := itemAmount / saleAmount
-		itemDiscount := roundToTwoDecimals(proportion * ns.Discount.Value())
+	itemsValues, err := SaleItemsValues(saleAmount, ns.Discount.Value(), ns.Items)
+	if err != nil {
+		return Sale{}, err
+	}
 
-		itemDiscountMoney, err := money.Parse(itemDiscount)
-		if err != nil {
-			return Sale{}, fmt.Errorf("create sale: %w", err)
-		}
-		itemAmountMoney, err := money.Parse(itemAmount)
-		if err != nil {
-			return Sale{}, fmt.Errorf("create sale: %w", err)
+	// items
+	for _, item := range ns.Items {
+
+		itemValue, ok := itemsValues[item.ProductID.String()]
+		if !ok {
+			return Sale{}, fmt.Errorf("error calculating item values for item: %s", item.ProductID)
 		}
 
 		saleItem := SaleItem{
-			SaleID:    slDB.ID,
-			ProductID: item.ProductID,
-			Quantity:  item.Quantity,
-			Discount:  itemDiscountMoney,
-			Amount:    itemAmountMoney,
-			UpdatedAt: now,
-			CreatedAt: now,
+			SaleID:     slDB.ID,
+			ProductID:  item.ProductID,
+			Quantity:   item.Quantity,
+			Discount:   itemValue.Discount,
+			UnityPrice: item.Price,
+			Amount:     itemValue.Amount,
+			UpdatedAt:  now,
+			CreatedAt:  now,
 		}
-		distributedDiscount += itemDiscount
 		slDB.Items = append(slDB.Items, saleItem)
-	}
-
-	if ns.Discount.Value() != distributedDiscount {
-		newDiscount, err := money.Parse(slDB.Items[0].Discount.Value() + (ns.Discount.Value() - distributedDiscount))
-		if err != nil {
-			return Sale{}, fmt.Errorf("create sale: %w", err)
-		}
-		slDB.Items[0].Discount = newDiscount
 	}
 
 	if err := b.storer.Create(ctx, slDB); err != nil {
@@ -189,4 +173,55 @@ func (b *Business) QueryByID(ctx context.Context, slID uuid.UUID) (Sale, error) 
 	}
 
 	return sl, nil
+}
+
+// SaleItemsValues calculates the amount and proportional discount for each sale item based on the total sale amount.
+// It returns a map where the key is the ProductID and the value contains the item's amount and discount.
+// If the calculated discounts don't match the total sale discount, the discrepancy is adjusted on the first item.
+// Returns an error if parsing of amounts or discounts fails.
+func SaleItemsValues(saleAmount float64, saleDiscount float64, items []NewSaleItem) (map[string]SaleItemValue, error) {
+	values := make(map[string]SaleItemValue)
+
+	// helper function to round the value of the discount
+	roundToTwoDecimals := func(value float64) float64 {
+		return math.Round(value*100) / 100
+	}
+
+	var distributedDiscount float64
+	for _, item := range items {
+		itemAmount := float64(item.Quantity) * item.Price.Value()
+		proportion := itemAmount / saleAmount
+		itemDiscount := roundToTwoDecimals(proportion * saleDiscount)
+
+		itemDiscountMoney, err := money.Parse(itemDiscount)
+		if err != nil {
+			return nil, fmt.Errorf("parsing item discount: %w", err)
+		}
+		itemAmountMoney, err := money.Parse(itemAmount)
+		if err != nil {
+			return nil, fmt.Errorf("parsing item amount: %w", err)
+		}
+
+		values[item.ProductID.String()] = SaleItemValue{
+			Amount:   itemAmountMoney,
+			Discount: itemDiscountMoney,
+		}
+		// we need this to check if there is leftover
+		distributedDiscount += itemDiscount
+	}
+
+	if saleDiscount != distributedDiscount {
+		itemValue, ok := values[items[0].ProductID.String()]
+		if !ok {
+			return nil, fmt.Errorf("error calculating item values for item: %s", items[0].ProductID)
+		}
+		newDiscount, err := money.Parse(itemValue.Discount.Value() + (saleDiscount - distributedDiscount))
+		if err != nil {
+			return nil, fmt.Errorf("error parsing item discount for sale: %w", err)
+		}
+		itemValue.Discount = newDiscount
+		values[items[0].ProductID.String()] = itemValue
+	}
+
+	return values, nil
 }

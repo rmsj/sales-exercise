@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 
 	"github.com/rmsj/service/business/domain/productbus"
 	"github.com/rmsj/service/business/domain/salebus"
@@ -113,6 +114,11 @@ func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 	sort.Slice(sls, func(i, j int) bool {
 		return sls[i].ID.String() <= sls[j].ID.String()
 	})
+	for i := range sls {
+		sort.Slice(sls[i].Items, func(k, l int) bool {
+			return sls[i].Items[k].ProductID.String() <= sls[i].Items[l].ProductID.String()
+		})
+	}
 
 	table := []unitest.Table{
 		{
@@ -168,6 +174,14 @@ func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 				if gotResp.ID == expResp.ID {
 					expResp.UpdatedAt = gotResp.UpdatedAt
 					expResp.CreatedAt = gotResp.CreatedAt
+
+					for i := range gotResp.Items {
+						if gotResp.Items[i].ProductID == expResp.Items[i].ProductID {
+							expResp.Items[i].SaleID = gotResp.Items[i].SaleID
+							expResp.Items[i].UpdatedAt = gotResp.Items[i].UpdatedAt
+							expResp.Items[i].CreatedAt = gotResp.Items[i].CreatedAt
+						}
+					}
 				}
 
 				return cmp.Diff(gotResp, expResp)
@@ -179,21 +193,78 @@ func query(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 }
 
 func create(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
+
+	discountedItems := []salebus.NewSaleItem{
+		{
+			ProductID: sd.Products[0].ID,
+			Quantity:  1,
+			Price:     sd.Products[0].Price,
+		},
+		{
+			ProductID: sd.Products[1].ID,
+			Quantity:  2,
+			Price:     sd.Products[1].Price,
+		},
+		{
+			ProductID: sd.Products[2].ID,
+			Quantity:  1,
+			Price:     sd.Products[2].Price,
+		},
+	}
+	discountedSaleAmount := (sd.Products[0].Price.Value() * 1) + (sd.Products[1].Price.Value() * 2) + (sd.Products[2].Price.Value() * 1)
+	discountedItemsValues, err := salebus.SaleItemsValues(discountedSaleAmount, 10, discountedItems)
+	if err != nil {
+		panic(err)
+	}
+	discountedSaleExpected := salebus.Sale{
+		UserID:   sd.Users[0].User.ID,
+		Discount: money.MustParse(10),
+		Amount:   money.MustParse(discountedSaleAmount),
+		Items: []salebus.SaleItem{
+			{
+				ProductID:  sd.Products[0].ID,
+				UnityPrice: sd.Products[0].Price,
+				Quantity:   1,
+				Amount:     sd.Products[0].Price,
+				Discount:   discountedItemsValues[sd.Products[0].ID.String()].Discount,
+			},
+			{
+				ProductID:  sd.Products[1].ID,
+				UnityPrice: sd.Products[1].Price,
+				Quantity:   2,
+				Amount:     discountedItemsValues[sd.Products[1].ID.String()].Amount,
+				Discount:   discountedItemsValues[sd.Products[1].ID.String()].Discount,
+			},
+			{
+				ProductID:  sd.Products[2].ID,
+				UnityPrice: sd.Products[2].Price,
+				Quantity:   1,
+				Amount:     sd.Products[2].Price,
+				Discount:   discountedItemsValues[sd.Products[2].ID.String()].Discount,
+			},
+		},
+	}
+
 	table := []unitest.Table{
 		{
 			Name: "basic",
 			ExpResp: salebus.Sale{
-				UserID: sd.Users[0].User.ID,
+				ID:       uuid.UUID{},
+				UserID:   sd.Users[0].User.ID,
+				Discount: money.MustParse(0),
+				Amount:   money.MustParse((sd.Products[0].Price.Value() * 1) + (sd.Products[1].Price.Value() * 2)),
 				Items: []salebus.SaleItem{
 					{
-						ProductID: sd.Products[0].ID,
-						Quantity:  1,
-						Amount:    sd.Products[0].Price,
+						ProductID:  sd.Products[0].ID,
+						UnityPrice: sd.Products[0].Price,
+						Quantity:   1,
+						Amount:     sd.Products[0].Price,
 					},
 					{
-						ProductID: sd.Products[0].ID,
-						Quantity:  2,
-						Amount:    money.MustParse(sd.Products[0].Price.Value() * 2),
+						ProductID:  sd.Products[1].ID,
+						UnityPrice: sd.Products[1].Price,
+						Quantity:   2,
+						Amount:     money.MustParse(sd.Products[1].Price.Value() * 2),
 					},
 				},
 			},
@@ -210,6 +281,62 @@ func create(busDomain dbtest.BusDomain, sd unitest.SeedData) []unitest.Table {
 							ProductID: sd.Products[1].ID,
 							Quantity:  2,
 							Price:     sd.Products[1].Price,
+						},
+					},
+				}
+
+				resp, err := busDomain.Sale.Create(ctx, ng)
+				if err != nil {
+					return err
+				}
+
+				return resp
+			},
+			CmpFunc: func(got any, exp any) string {
+				gotResp, exists := got.(salebus.Sale)
+				if !exists {
+					return "error occurred"
+				}
+
+				expResp := exp.(salebus.Sale)
+
+				expResp.ID = gotResp.ID
+				expResp.UpdatedAt = gotResp.UpdatedAt
+				expResp.CreatedAt = gotResp.CreatedAt
+
+				for i := range gotResp.Items {
+					if gotResp.Items[i].ProductID == expResp.Items[i].ProductID {
+						expResp.Items[i].SaleID = gotResp.Items[i].SaleID
+						expResp.Items[i].UpdatedAt = gotResp.Items[i].UpdatedAt
+						expResp.Items[i].CreatedAt = gotResp.Items[i].CreatedAt
+					}
+				}
+
+				return cmp.Diff(gotResp, expResp)
+			},
+		},
+		{
+			Name:    "discount",
+			ExpResp: discountedSaleExpected,
+			ExcFunc: func(ctx context.Context) any {
+				ng := salebus.NewSale{
+					UserID:   sd.Users[0].User.ID,
+					Discount: money.MustParse(10),
+					Items: []salebus.NewSaleItem{
+						{
+							ProductID: sd.Products[0].ID,
+							Quantity:  1,
+							Price:     sd.Products[0].Price,
+						},
+						{
+							ProductID: sd.Products[1].ID,
+							Quantity:  2,
+							Price:     sd.Products[1].Price,
+						},
+						{
+							ProductID: sd.Products[2].ID,
+							Quantity:  1,
+							Price:     sd.Products[2].Price,
 						},
 					},
 				}
