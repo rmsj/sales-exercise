@@ -69,19 +69,13 @@ SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
 # Running The Project
 #
 #	$ make compose-build-up
-#
-#	You can use `make dev-status` to look at the status of your KIND cluster.
 
 # ==============================================================================
 # Project Tooling
 #
 #   There is tooling that can generate documentation and add a new domain to
 #   the code base. The code that is generated for a new domain provides the
-#   common code needed for all domains.
-#
-#   Generating Documentation
-#   $ go run app/tooling/docs/main.go --browser
-#   $ go run app/tooling/docs/main.go -out json
+#   common code needed for all domains. Work in progress
 #
 #   Adding New Domain To System
 #   $ go run api/tooling/codegen/main.go domain_name
@@ -109,10 +103,7 @@ MYSQL        	:= mysql:9.2.0
 GRAFANA         := grafana/grafana:11.5.0
 PROMETHEUS      := prom/prometheus:v3.1.0
 TEMPO           := grafana/tempo:2.7.0
-LOKI            := grafana/loki:3.4.0
-PROMTAIL        := grafana/promtail:3.4.0
 
-KIND_CLUSTER    := ardan-starter-cluster
 ENVIRONMENT     := $(strip ${ENVIRONMENT})
 NAMESPACE       := sales-system
 SALES_APP       := sales
@@ -122,19 +113,6 @@ VERSION         := "0.1.1-$(shell git rev-parse --short HEAD)"
 SALES_IMAGE     := $(BASE_IMAGE_NAME)/$(SALES_APP):$(VERSION)
 METRICS_IMAGE   := $(BASE_IMAGE_NAME)/metrics:$(VERSION)
 AUTH_IMAGE      := $(BASE_IMAGE_NAME)/$(AUTH_APP):$(VERSION)
-
-# Region/Environment specific variables
-# You MUST export these environment variables before running any terraform commands (e.g. export ENVIRONMENT=staging)
-# The AWS_ACCOUNT and AWS_REGION are used to build the ECR URL
-# The AWS_PROFILE is used to authenticate with AWS
-
-AWS_PROFILE := $(strip ${AWS_PROFILE}) #hg-staging
-AWS_ACCOUNT := $(strip ${AWS_ACCOUNT}) #533267216672
-AWS_REGION := $(strip ${AWS_REGION}) #ap-southeast-2
-# the repo is derived from the above variables
-AWS_ECR := $(strip $(AWS_ACCOUNT)).dkr.ecr.$(strip $(AWS_REGION)).amazonaws.com
-vpc_id := $(aws --profile $(AWS_PROFILE) ec2 describe-vpcs --filters "Name=tag:Name,Values=hg-$(ENVIRONMENT)-vpc" --query "Vpcs[*].VpcId" --output text)
-subnets := $(aws --profile $(AWS_PROFILE) ec2 describe-subnets --filters "Name=vpc-id,Values=$(vpc_id)" "Name=tag:Tier,Values=public" | jq -r '.Subnets | map(.SubnetId) | join(",")')
 
 # ==============================================================================
 # Install dependencies
@@ -228,8 +206,6 @@ metrics-view-sc:
 metrics-view:
 	expvarmon -ports="localhost:4020" -endpoint="/metrics" -vars="build,requests,goroutines,errors,panics,mem:memstats.HeapAlloc,mem:memstats.HeapSys,mem:memstats.Sys"
 
-grafana:
-	open http://localhost:3100/
 
 statsviz:
 	open http://localhost:3010/debug/statsviz
