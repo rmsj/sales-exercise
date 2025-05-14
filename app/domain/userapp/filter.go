@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/rmsj/service/app/sdk/errs"
 	"github.com/rmsj/service/business/domain/userbus"
 	"github.com/rmsj/service/business/types/name"
@@ -40,61 +41,46 @@ func parseQueryParams(r *http.Request) (queryParams, error) {
 }
 
 func parseFilter(qp queryParams) (userbus.QueryFilter, error) {
-	var fieldErrors errs.FieldErrors
 	var filter userbus.QueryFilter
 
 	if qp.ID != "" {
 		id, err := uuid.Parse(qp.ID)
-		switch err {
-		case nil:
-			filter.ID = &id
-		default:
-			fieldErrors.Add("user_id", err)
+		if err != nil {
+			return userbus.QueryFilter{}, errs.NewFieldErrors("user_id", err)
 		}
+		filter.ID = &id
 	}
 
 	if qp.Name != "" {
-		name, err := name.Parse(qp.Name)
-		switch err {
-		case nil:
-			filter.Name = &name
-		default:
-			fieldErrors.Add("name", err)
+		uName, err := name.Parse(qp.Name)
+		if err != nil {
+			return userbus.QueryFilter{}, errs.NewFieldErrors("name", err)
 		}
+		filter.Name = &uName
 	}
 
 	if qp.Email != "" {
 		addr, err := mail.ParseAddress(qp.Email)
-		switch err {
-		case nil:
-			filter.Email = addr
-		default:
-			fieldErrors.Add("email", err)
+		if err != nil {
+			return userbus.QueryFilter{}, errs.NewFieldErrors("email", err)
 		}
+		filter.Email = addr
 	}
 
 	if qp.StartCreatedDate != "" {
 		t, err := time.Parse(time.RFC3339, qp.StartCreatedDate)
-		switch err {
-		case nil:
-			filter.StartCreatedDate = &t
-		default:
-			fieldErrors.Add("start_created_date", err)
+		if err != nil {
+			return userbus.QueryFilter{}, errs.NewFieldErrors("start_created_date", err)
 		}
+		filter.StartCreatedDate = &t
 	}
 
 	if qp.EndCreatedDate != "" {
 		t, err := time.Parse(time.RFC3339, qp.EndCreatedDate)
-		switch err {
-		case nil:
-			filter.EndCreatedDate = &t
-		default:
-			fieldErrors.Add("end_created_date", err)
+		if err != nil {
+			return userbus.QueryFilter{}, errs.NewFieldErrors("end_created_date", err)
 		}
-	}
-
-	if fieldErrors != nil {
-		return userbus.QueryFilter{}, fieldErrors.ToError()
+		filter.EndCreatedDate = &t
 	}
 
 	return filter, nil

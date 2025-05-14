@@ -10,6 +10,7 @@ import (
 // We are using pointer semantics because the With API mutates the value.
 type QueryFilter struct {
 	ID    *uuid.UUID
+	IDs   []uuid.UUID
 	Name  *name.Name
 	Price *float64
 }

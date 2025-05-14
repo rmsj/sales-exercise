@@ -26,6 +26,11 @@ func (s *Store) applyFilter(filter productbus.QueryFilter, data map[string]any, 
 		wc = append(wc, "price = :price")
 	}
 
+	if len(filter.IDs) > 0 {
+		data["ids"] = filter.IDs
+		wc = append(wc, "id IN (:ids)")
+	}
+
 	if len(wc) > 0 {
 		buf.WriteString(" WHERE ")
 		buf.WriteString(strings.Join(wc, " AND "))

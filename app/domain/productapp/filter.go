@@ -3,6 +3,7 @@ package productapp
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -16,6 +17,7 @@ type queryParams struct {
 	Rows    string
 	OrderBy string
 	ID      string
+	IDs     []string
 	Name    string
 	Price   string
 }
@@ -23,11 +25,18 @@ type queryParams struct {
 func parseQueryParams(r *http.Request) queryParams {
 	values := r.URL.Query()
 
+	productIds := values.Get("product_ids")
+	var ids []string
+	if productIds != "" {
+		ids = strings.Split(productIds, ",")
+	}
+
 	filter := queryParams{
 		Page:    values.Get("page"),
 		Rows:    values.Get("rows"),
 		OrderBy: values.Get("orderBy"),
 		ID:      values.Get("product_id"),
+		IDs:     ids,
 		Name:    values.Get("name"),
 		Price:   values.Get("price"),
 	}
@@ -36,41 +45,40 @@ func parseQueryParams(r *http.Request) queryParams {
 }
 
 func parseFilter(qp queryParams) (productbus.QueryFilter, error) {
-	var fieldErrors errs.FieldErrors
 	var filter productbus.QueryFilter
 
 	if qp.ID != "" {
 		id, err := uuid.Parse(qp.ID)
-		switch err {
-		case nil:
-			filter.ID = &id
-		default:
-			fieldErrors.Add("product_id", err)
+		if err != nil {
+			return productbus.QueryFilter{}, errs.NewFieldErrors("product_id", err)
 		}
+		filter.ID = &id
 	}
 
 	if qp.Name != "" {
-		name, err := name.Parse(qp.Name)
-		switch err {
-		case nil:
-			filter.Name = &name
-		default:
-			fieldErrors.Add("name", err)
+		pName, err := name.Parse(qp.Name)
+		if err != nil {
+			return productbus.QueryFilter{}, errs.NewFieldErrors("name", err)
 		}
+		filter.Name = &pName
 	}
 
 	if qp.Price != "" {
-		cst, err := strconv.ParseFloat(qp.Price, 64)
-		switch err {
-		case nil:
-			filter.Price = &cst
-		default:
-			fieldErrors.Add("price", err)
+		price, err := strconv.ParseFloat(qp.Price, 64)
+		if err != nil {
+			return productbus.QueryFilter{}, errs.NewFieldErrors("price", err)
 		}
+		filter.Price = &price
 	}
 
-	if fieldErrors != nil {
-		return productbus.QueryFilter{}, fieldErrors.ToError()
+	if len(qp.IDs) > 0 {
+		for _, id := range qp.IDs {
+			parsedID, err := uuid.Parse(id)
+			if err != nil {
+				return productbus.QueryFilter{}, errs.NewFieldErrors("price", err)
+			}
+			filter.IDs = append(filter.IDs, parsedID)
+		}
 	}
 
 	return filter, nil

@@ -129,7 +129,7 @@ func (s *Store) Query(ctx context.Context, filter productbus.QueryFilter, orderB
 	buf.WriteString(" LIMIT :rows_per_page OFFSET :offset")
 
 	var dbPrds []product
-	if err := sqldb.NamedQuerySlice(ctx, s.log, s.db, buf.String(), data, &dbPrds); err != nil {
+	if err := sqldb.NamedQuerySliceUsingIn(ctx, s.log, s.db, buf.String(), data, &dbPrds); err != nil {
 		return nil, fmt.Errorf("namedqueryslice: %w", err)
 	}
 
